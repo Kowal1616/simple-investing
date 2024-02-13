@@ -7,7 +7,7 @@ I have developed a Flask App that aims at promotion of low-cost, low-maintains, 
 
 #### **Project structure**
 In *app.py* I:
-+ Initialize my flask app, SQL-Alchemy and logging
++ Initialize my flask app, SQL-Alchemy and logging system
 + Define app routes
 + Call functions (see below) and set scheduler
 
@@ -19,6 +19,8 @@ In *models.py* I:
 + Define db classes
 
 Additionally I used *csv-importer.py* - a simple script to feed the db with csv structured data before first running my app. To reach 30 years history I have extanded etfs historical returns with indexes and at some cases simulated results based od avarage long term returns.
+
+I intended to avoid using robust functions, trying to follow *one_function-one_purpose* principle. I have also worked hard to implement *clean-code* philosophy with clear and informative names and comments.
 
 #### **Step-by-step - Process explained**
 
@@ -41,7 +43,9 @@ I have considered adding a mechanism checking db for needed update further back 
 All functions are stored in *helpers.py* and called in *app.py* on sturtup and than once a month via scheduler.
 
 #### **Re 7:**
-The portfolio comperison tool (= index page table) displays data from the database. `@app.route('/api/data')` is making the data available for `@app.route("/")` and on index page I use *Grid.js* library to create the table. It makes it easy to create it simple and slick with custom sorting - exactly as I need it. I also use *Bootstrap* template (I link to the author in the footer of each page).
+The portfolio comperison tool (= index page table) displays data from the database. `@app.route('/api/data')` is making the data available for `@app.route("/")`. On the index page I use *Grid.js* library to create the table. It makes it easy to create it simple and slick with custom sorting - exactly as I need it. Table can be 'scrolled' to the right to access more data.
+
+I also use *Bootstrap* template (I link to the author in the footer of each page).
 
 #### **Additional features**
 User can access each Portfolio and Etf profile page with additional information and link to official profile (Etfs). Those are accesible both via collapsable menu and by clicking Portfolio/Etf name in the table.
