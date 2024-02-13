@@ -5,6 +5,18 @@
 
 I have developed a Flask App that aims at promotion of low-cost, low-maintains, long-term investing (Boggleheads style!). My app's main feature is a table which displays long term returns of chosen etfs based portfolios over 5, 10, 20 and 30 years periods. A comparison table is fed with extended historical data (enhaced with corresponding indexes and simulations) and up to date thanks to monthly performed updates from two independent data sources.
 
+#### **Project structure**
+In app.py I:
++ Initialize my flask app, SQL-Alchemy and logging
++ Define app routes
++ Call functions (see below) and set scheduler
+
+In helpers.py I:
++ Define most of my app's functions
+
+In models.py I:
++ 
+
 #### **Step-by-step - Process explained**
 
 1. App is set to fetch data (etfs prices) from two different online sources (one via API, one via library).
@@ -16,9 +28,9 @@ I have developed a Flask App that aims at promotion of low-cost, low-maintains, 
 7. App is displaying chosen db data on the web page.
 
 #### **Re 1:**
-This process is triggered once on a startup and than once a month via scheduler (monthly data is used). When data from both sources is available it's using the avarage of both. Whole process runs only if: 1) data for previous month isn't already present in the db, or 2) it's not the first day of the month and data might not be available yet.
+This process is triggered once on a startup and than once a month via scheduler (monthly data is used). Whole process runs only if: 1) data for previous month isn't already present in the db, or 2) it's not the first day of the month and data might not be available yet.
 
-To minimise the lack of data I decided to use two separate sources. One of those I access via API and the other one via open-source library. If data from both is available I use the avarage.
+To minimise the lack of data I decided to use two separate sources. One of those I access via API (output in csv format) and the other one via open-source library (output in pandas DataFrame format). If data from both is available I use the avarage.
 
 I have considered adding a mechanism checking db for needed update further back in time but as the app is intended to run on the server all the time and in event of failer would be soon restarted, I dropped it as unneeded.
 
