@@ -18,16 +18,16 @@ In *models.py* I:
 + Set the db
 + Define db classes
 
-Additionally I used *csv-importer.py* - a simple script to feed the db with csv structured data before first running my app.
+Additionally I used *csv-importer.py* - a simple script to feed the db with csv structured data before first running my app. To reach 30 years history I have extanded etfs historical returns with indexes and at some cases simulated results based od avarage long term returns.
 
 #### **Step-by-step - Process explained**
 
-1. App is set to fetch data (etfs prices) from two different online sources (one via API, one via library).
-2. A db table storing historical prices is appended with new data. To reach 30 years history I have extanded etfs historical returns with indexes and at some cases simulated results based od avarage long term returns.
-3. Etfs annual yeilds are computed and updated to the db.
-4. Portfolios annual uields are computed (based on etfs yields) and updated to the db.
-5. Inflation cumulative rates are computed for 5, 10, 20 and 30 years periods. Those are updated to the db.
-6. Portfolios historical results are computed to be later used to compute max drawdowns (biggest loss in set period of time - good indicator to show investment risk) over set periods of time (5, 10, ...). Those are updated to the db.
+1. `get_etfs_data` function - App is set to fetch data (etfs prices) from two different online sources (one via API, one via library).
+2. `append_etfs_prices` function - A db table storing historical prices is appended with new data. 
+3. `get_etfs_yields` function and `update_etfs_yields` function - Etfs annual yeilds are computed and updated to the db. I decided to use CAGR (Compound Annual Growth Rate) as it is really good at showing how different investments have performed over time.
+4. `get_portfolio_returns` function and `update_portfolios_returns` function - Portfolios annual yields are computed (based on etfs yields) and updated to the db.
+5. `get_inflation` function and `update_inflation` function - Inflation cumulative rates are computed for 5, 10, 20 and 30 years periods. Those are updated to the db.
+6. `get_portfolios_results` function, `get_portfolios_drawdown` function and `update_portfolios_drawdown` function - Portfolios historical results are computed to be later used to compute max drawdowns (biggest loss in set period of time - good indicator to show investment risk) over set periods of time (5, 10, ...). Those are updated to the db.
 7. App is displaying chosen db data on the web page.
 
 #### **Re 1:**
@@ -44,7 +44,9 @@ All functions are stored in *helpers.py* and called in *app.py* on sturtup and t
 The portfolio comperison tool (= index page table) displays data from the database. `@app.route('/api/data')` is making the data available for `@app.route("/")` and on index page I use *Grid.js* library to create the table. It makes it easy to create it simple and slick with custom sorting - exactly as I need it. I also use *Bootstrap* template (I link to the author in the footer of each page).
 
 #### **Additional features**
-User can access each Portfolio and Etf profile page with additional information and link to official profile (Etfs).
+User can access each Portfolio and Etf profile page with additional information and link to official profile (Etfs). Those are accesible both via collapsable menu and by clicking Portfolio/Etf name in the table.
+
+I'm also using an AI generated project logo :)
 
 #### **Error handling**
 I use `Try/Except` blocks in functions that are prone to errors - working with db or external apis. In addition I set up an e-mail notification tool, so I will get notified via e-mail (using *Sendgrid*) when serious error occure. I'm also logging errors using Python's *logging* module.
