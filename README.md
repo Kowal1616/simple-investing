@@ -8,9 +8,11 @@ I have developed a Flask App that aims at promotion of low-cost, low-maintans, l
 ##### **Step-by-step - Process explained**
 
 1. App is set to fetch data (etfs prices) from two different online sources (one via API, one via library).
-2. A db table storing historical prices is appended with new data. To reach 30 years history Ihave extanded etfs historical returns with indexes data and at some cases simulated results based od avarage long term returns.
+2. A db table storing historical prices is appended with new data. To reach 30 years history I have extanded etfs historical returns with indexes and at some cases simulated results based od avarage long term returns.
 3. Etfs annual yeilds are computed and updated in the db.
-4.
+4. Portfolios annual uields are computed (based on etfs yields) and updated in the db.
+5. Inflation cumulative rates are computed for 5, 10, 20 and 30 years periods. Those are updated to the db.
+6. 
 
 ##### **Re 1:**
 
@@ -18,7 +20,7 @@ This process is triggered once on a startup and than once a month via scheduler 
 
 I have considered adding a mechanism checking db for needed update further back in time but as the app is intended to run on the server all the time and in event of failer would be soon restarted, I dropped it as unneeded.
 
-Re 2
+##### **Re 2:**
 The portfolio comperison tool (= index page table) displays data from the database.
 
 # SPRAWDŹ czy dobry angielski ???!!!
