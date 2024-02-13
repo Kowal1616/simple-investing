@@ -5,6 +5,8 @@
 
 I have developed a Flask App that aims at promotion of low-cost, low-maintains, long-term investing (Boggleheads style!). My app's main feature is a table which displays long term returns of chosen etfs based portfolios over 5, 10, 20 and 30 years periods. A comparison table is fed with extended historical data (enhaced with corresponding indexes and simulations) and up to date thanks to monthly performed updates from two independent data sources.
 
+There is a similar tool for US based investors featuring US Etfs that I took inspiration of. My app is uniqe in a way that it's aimed at EU based investors and all Portfolios consist of european Etfs. First european ETF was lounched aroud 20 years ago and the Etfs I used have probably around 10-15 years history so my extended historical data add great value to final data displayed on the web page.
+
 #### **Project structure**
 In *app.py* I:
 + Initialize my flask app, SQL-Alchemy and logging system
@@ -45,7 +47,7 @@ All functions are stored in *helpers.py* and called in *app.py* on sturtup and t
 #### **Re 7:**
 The portfolio comperison tool (= index page table) displays data from the database. `@app.route('/api/data')` is making the data available for `@app.route("/")`. On the index page I use *Grid.js* library to create the table. It makes it easy to create it simple and slick with custom sorting - exactly as I need it. Table can be 'scrolled' to the right to access more data.
 
-I also use *Bootstrap* template (I link to the author in the footer of each page).
+I use *Bootstrap* Cover template (I link to the author in the footer of each page).
 
 #### **Additional features**
 User can access each Portfolio and Etf profile page with additional information and link to official profile (Etfs). Those are accesible both via collapsable menu and by clicking Portfolio/Etf name in the table.
@@ -53,7 +55,7 @@ User can access each Portfolio and Etf profile page with additional information 
 I'm also using an AI generated project logo :)
 
 #### **Error handling**
-I use `Try/Except` blocks in functions that are prone to errors - working with db or external apis. In addition I set up an e-mail notification tool, so I will get notified via e-mail (using *Sendgrid*) when serious error occure. I'm also logging errors using Python's *logging* module.
+I use `Try/Except` blocks in functions that are prone to errors - working with the db or external online data. In addition I set up an e-mail notification tool, so I will get notified via e-mail (using *Sendgrid* library) when serious errors occure. I'm also logging errors using Python's *logging* module.
 
 
 
