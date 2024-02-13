@@ -52,6 +52,6 @@ I use `Try/Except` blocks in functions that are prone to errors - working with d
 
 
 
-I have decided to use only dark theme for my web page as it's more energy efficient.
+:herb: I have decided to use only dark theme for my web page as it's more energy efficient.
 
 # SPRAWDŹ czy dobry angielski ???!!!
