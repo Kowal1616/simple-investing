@@ -7,15 +7,15 @@ Simple Investing is a Flask App that aims at promotion of low-cost, low-maintain
 There is a similar tool for US based investors featuring US Etfs that I took inspiration of. My app is unique in a way that it's aimed at EU based investors and all Portfolios consist of European Etfs. The first EU-based ETF was launched approximately 20 years ago, and the ETFs I've utilized likely have a historical record spanning 10-15 years. As a result, the extended historical data significantly enhances the value of the final data displayed on the web page.
 
 #### **PROJECT STRUCTURE**
-In *app.py* I:
+In *app.py*:
 + Initialize my flask app, SQL-Alchemy and logging system
 + Define app routes
 + Call functions (see below) and set scheduler
 
-In *helpers.py* I:
+In *helpers.py*:
 + Define most of my app's functions
 
-In *models.py* I:
+In *models.py*:
 + Set the db
 + Define db classes
 
