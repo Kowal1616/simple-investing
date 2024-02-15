@@ -2,7 +2,7 @@
 ### Video Demo:  <URL HERE>
 ### Description:
 
-I have developed a Flask App that aims at promotion of low-cost, low-maintains, long-term investing (Boggleheads style!). My app's main feature is a table which displays long term returns of chosen etfs based portfolios over 5, 10, 20 and 30 years periods. A comparison table is fed with extended historical data (enhanced with corresponding indexes and simulations) and up to date thanks to monthly performed updates from two independent data sources.
+Simple Investing is a Flask App that aims at promotion of low-cost, low-maintains, long-term investing (Boggleheads style!). My app's main feature is a table which displays long term returns of chosen etfs based portfolios over 5, 10, 20 and 30 years periods. A comparison table is fed with extended historical data (enhanced with corresponding indexes and simulations) and up to date thanks to monthly performed updates from two independent data sources.
 
 There is a similar tool for US based investors featuring US Etfs that I took inspiration of. My app is unique in a way that it's aimed at EU based investors and all Portfolios consist of European Etfs. The first EU-based ETF was launched approximately 20 years ago, and the ETFs I've utilized likely have a historical record spanning 10-15 years. As a result, the extended historical data significantly enhances the value of the final data displayed on the web page.
 
