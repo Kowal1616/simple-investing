@@ -1,4 +1,4 @@
-Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use only, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.
+###### Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use only, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.
 
 
 
