@@ -424,7 +424,7 @@ def data_retrival_yf(ticker_yf, today):
 
 
 def data_retrival_av(ticker_av):
-    # Retrieve data using AlphaVantage API (second row is last month adjusted close data)
+    ''' Retrieve data using AlphaVantage API (second row is last month adjusted close data) '''
     url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={}&apikey={}&datatype=csv'.format(
         ticker_av, alphavantage_api_key)
     response = requests.get(url)
