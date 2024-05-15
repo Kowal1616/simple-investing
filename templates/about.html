@@ -5,51 +5,52 @@
 {% endblock %}
 
 {% block main %}
-<p>Welcome to Simple Investing - your go-to portfolio comparison tool designed with EU-based investors in mind. Created as the final project for the CS50 Course, this Flask app serves as both an educational resource and a demonstration of coding proficiency.
-Purpose
+<br>
+<h1>About</h1>
+<p class="justify-align">Welcome to Simple Investing - your go-to portfolio comparison tool designed with EU-based investors in mind. Created as the final project for the CS50 Course,
+ this Flask app serves as both an educational resource and a demonstration of coding proficiency.</p>
+<br>
+<p class="justify-align">Simple Investing promotes low-cost, low-maintenance, long-term investing, inspired by the Boggleheads philosophy. At its core, the app features a dynamic
+table that showcases the long-term returns of various ETF-based portfolios over 5, 10, 20, and 30-year periods. Powered by extended historical data, enriched
+with corresponding indexes and simulations, this tool offers invaluable insights for strategic investment planning.</p>
+<br>
+<h2>How to Use</h2>
 
-Simple Investing promotes low-cost, low-maintenance, long-term investing, inspired by the Boggleheads philosophy. At its core, the app features a dynamic table that showcases the long-term returns of various ETF-based portfolios over 5, 10, 20, and 30-year periods. Powered by extended historical data, enriched with corresponding indexes and simulations, this tool offers invaluable insights for strategic investment planning.
-How to Use
+    <h4>Exploring Portfolios:</h4> 
+    <p class="justify-align">Navigate to the comparison table on the index page to explore different portfolio options. Each portfolio is meticulously curated with European ETFs,
+    catering specifically to EU-based investors.</p>
 
-    Exploring Portfolios: Navigate to the comparison table on the index page to explore different portfolio options. Each portfolio is meticulously curated with European ETFs, catering specifically to EU-based investors.
+    <h4>Digging Deeper:</h4>
+    <p class="justify-align">Click on individual portfolios or ETFs to access detailed profiles, complete with additional information and official links.</p>
 
-    Digging Deeper: Click on individual portfolios or ETFs to access detailed profiles, complete with additional information and official links.
-
-    Staying Informed: Keep track of portfolio performance with our intuitive interface, powered by the Grid.js library for seamless sorting and scrolling.
-
-Project Structure
-
-Simple Investing is structured around clean, modular code, adhering to the principle of "one function, one purpose." The app's core functionality is encapsulated within the following components:
-
-    app.py: Initializes the Flask app, sets up routes, and orchestrates the scheduler for periodic updates.
-    helpers.py: Houses most of the app's functions, facilitating data retrieval, computation, and updates.
-    models.py: Defines the database schema and data models, ensuring efficient data storage and retrieval.
-    csv-importer.py: A utility script to populate the database with CSV structured data before the initial app launch.
-
-Process Explained
-
-    Data Acquisition: Fetch ETF prices from multiple online sources to ensure accuracy and reliability.
-    Data Enrichment: Enhance historical data with extended records, indexes, and simulations to provide comprehensive insights.
-    Yield Calculation: Compute annual yields for ETFs and portfolios using the Compound Annual Growth Rate (CAGR) metric.
-    Performance Analysis: Analyze portfolio performance over different time horizons to assess risk and return profiles.
-    Inflation Adjustment: Factor in inflation rates to provide a realistic assessment of investment returns.
-    Error Handling: Implement robust error handling mechanisms, including logging and email notifications, to ensure data integrity and reliability.
-
-Additional Features
-
+    <h4>Staying Informed:</h4>
+    <p class="justify-align">Keep track of portfolio performance with our intuitive interface, powered by the Grid.js library for seamless sorting and scrolling.</p>
+<br>
+<h2>Project Structure</h2>
+    <p class="justify-align">Simple Investing is structured around clean, modular code, adhering to the principle of "one function, one purpose".</p>
+    <br>
+    <h4>Process Explained</h4>
+        <p class="justify-align">
+            Data Acquisition: Fetch ETF prices from multiple online sources to ensure accuracy and reliability.
+            Data Enrichment: Enhance historical data with extended records, indexes, and simulations to provide comprehensive insights.
+            Yield Calculation: Compute annual yields for ETFs and portfolios using the Compound Annual Growth Rate (CAGR) metric.
+            Performance Analysis: Analyze portfolio performance over different time horizons to assess risk and return profiles.
+            Inflation Adjustment: Factor in inflation rates to provide a realistic assessment of investment returns.
+            Error Handling: Implement robust error handling mechanisms, including logging and email notifications, to ensure data integrity and reliability.
+        </p>
+<br>
+<h2>Future Development</h2>
+<p class="justify-align">Simple Investing is an evolving project with a roadmap for future enhancements, including more strategies, user profiles, and advanced features to empower
+    investors in their financial journey.</p>
+<p class="justify-align">
     User Profiles: Enable users to store favorite strategies, receive alerts, and generate performance reports.
     Interactive Quiz: Develop a quiz game to match investor profiles with suitable portfolios based on user preferences.
     Global Equity Momentum (GEM): Integrate signals for a Global Equity Momentum strategy to enhance portfolio selection.
     Real Estate Investment: Expand the comparison tool to include real estate investment options for comprehensive planning.
-
-Future Development
-
-Simple Investing is an evolving project with a roadmap for future enhancements, including more strategies, user profiles, and advanced features to empower investors in their financial journey.
-Energy Efficiency
-
-In alignment with sustainability goals, Simple Investing adopts a dark theme for its web pages to minimize energy consumption. By reducing the carbon footprint associated with digital activities, we contribute to a more eco-friendly online environment.
-Conclusion
-
-Simple Investing represents a commitment to providing EU-based investors with a powerful tool for long-term investment planning. With a focus on simplicity, reliability, and sustainability, we strive to empower users to make informed decisions and achieve their financial goals.
 </p>
+
+<h2>Energy Efficiency</h2>
+
+<p class="justify-align">In alignment with sustainability goals, Simple Investing adopts a dark theme for its web pages to minimize energy consumption. By reducing the carbon footprint associated with digital activities, we contribute to a more eco-friendly online environment.
+Conclusion</p>
 {% endblock %}
