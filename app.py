@@ -44,6 +44,19 @@ def index():
     # Index page content is rendered via Grid.js + /api/data route
     return render_template("index.html")
 
+@app.route('/portfolios')
+def portfolios():
+    return render_template('portfolios.html')
+
+@app.route('/etfs')
+def etfs():
+    return render_template('etfs.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+
 @app.route('/api/data')
 def data():
     # Create a session
