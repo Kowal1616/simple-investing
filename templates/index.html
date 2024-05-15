@@ -5,17 +5,15 @@
 {% endblock %}
 
 {% block main %}
-<!-- Your main content -->
 <div id="portfolioTable"></div>
-
 <!-- JavaScript code to render Grid.js table -->
 <script type="module">
     import { Grid } from "https://unpkg.com/gridjs?module";
 
     new Grid({
-              columns: [
-                { id: 'name', name: 'Portfolio Name', width: '25%', sort: false },
-                { id: 'assets', name: 'Assets', width: '13%' },
+            columns: [
+                { id: 'name', name: 'Portfolio Name', sort: false },
+                { id: 'assets', name: 'Assets', width: 'auto' }, // Set width to auto
                 {
                     id: 'returns',
                     name: 'Annual Yield (CAGR) for periods of:',
@@ -56,38 +54,37 @@
                 }
             ],
             server: {
-            url: '/api/data',
-            then: data => {
-                // Round numerical values for returns to two decimal points
-                data.forEach(row => {
-                  row.return5 = (row.return5);
-                  row.return10 = (row.return10);
-                  row.return20 = (row.return20);
-                  row.return30 = (row.return30);
-              });
-                return data;
+                url: '/api/data',
+                then: data => {
+                    // Round numerical values for returns to two decimal points
+                    data.forEach(row => {
+                        row.return5 = (row.return5);
+                        row.return10 = (row.return10);
+                        row.return20 = (row.return20);
+                        row.return30 = (row.return30);
+                    });
+                    return data;
+                }
+            },
+            fixedHeader: true,
+            sort: true,
+            style: {
+                table: {
+                    border: '3px solid #ccc'
+                },
+                th: {
+                    'text-align': 'center',
+                    'font-size': '13px',
+                    whiteSpace: 'normal',
+                    padding: '2px',
+                    border: '3px solid #ccc'
+                },
+                td: {
+                    'text-align': 'center',
+                    'font-size': '13px'
+                }
             }
-        },
-        fixedHeader: true,
-        sort: true,
-        style: {
-          table: {
-            border: '3px solid #ccc'
-          },
-          th: {
-            'text-align': 'center',
-            'font-size': '13px',
-            whiteSpace: 'normal',
-            padding: '2px',
-            border: '3px solid #ccc'
-          },
-          td: {
-            'text-align': 'center',
-            'font-size': '13px'
-          }
-        }
 
     }).render(document.getElementById('portfolioTable'));
-</script>
+</script>  
 {% endblock %}
-
