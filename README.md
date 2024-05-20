@@ -1,6 +1,8 @@
 ###### Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use only, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.
 
 
+:star: For HOW-TO scroll to the bottom :star:
+
 
 # SIMPLE INVESTING - portfolio comparison tool
 ### Video Demo:  <URL HERE>
@@ -73,3 +75,49 @@ I use `try/except` blocks in functions susceptible to errors, particularly those
 
 
 My Flask app represents an effort to provide EU-based investors with a powerful tool for long-term investment planning. With a focus on simplicity, reliability, and sustainability, I have developed a platform that empowers users to make informed decisions about their financial futures.
+
+
+# HOW-TO run the project
+I suggest using GitHub's codespace to run project as it's the fastest way to see what is it about.
+
+## Prerequisites
+
++ Ensure you have a GitHub account with access to GitHub Codespaces.
+
+## Setting Up the Project
+
+1. Clone the repository and open in GitHub Codespaces:
+
+    + Navigate to the repository on GitHub.
+    + Click on the <> Code button.
+    + Select Open with Codespaces and then New codespace.
+2. Codespaces will automatically set up your environment:
+
+    + This includes creating a virtual environment and installing all required dependencies as specified in requirements.txt.
+
+## Running the Application
+
+1. Set the environment variables:
+    In GitHub Codespaces, these can be set directly in the terminal or by creating a .env file. Here’s how to set them in the terminal:
+```
+export FLASK_APP=app.py
+export FLASK_ENV=development
+```
+2. Initialize the database:
+```
+flask db init
+flask db migrate -m "Initial migration."
+flask db upgrade
+```
+3. Run the Flask application:
+```
+flask run --host=0.0.0.0
+```
+Find a link to access the application in terminal window.
+
+
+## Troubleshooting
+
++ If you encounter any issues, ensure that all dependencies are correctly installed.
++ Make sure the environment variables are correctly set.
++ Check the Flask documentation for more details on configuration and setup: Flask Documentation
