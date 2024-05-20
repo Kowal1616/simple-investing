@@ -1,6 +1,6 @@
 
-> [!WARNING] 
-> Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.
+> [!NOTE] 
+> <sub>Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.</sub>
 
 
 :star: For HOW-TO scroll to the bottom :star:
@@ -79,9 +79,10 @@ I use `try/except` blocks in functions susceptible to errors, particularly those
 My Flask app represents an effort to provide EU-based investors with a powerful tool for long-term investment planning. With a focus on simplicity, reliability, and sustainability, I have developed a platform that empowers users to make informed decisions about their financial futures.
 
 # How to Run the Application
+Choose your preferable way to run my application from options below, if encountered any problems look into Troubleshooting.
 
 <details>
-<summary>### Running Locally</summary>
+<summary>Running Locally</summary>
 
 
 1. **Clone the repository:**
@@ -134,7 +135,7 @@ My Flask app represents an effort to provide EU-based investors with a powerful 
 </details>
 
 <details>
-<summary>### Running in GitHub Codespaces</summary>
+<summary>Running in GitHub Codespaces</summary>
 
 
 1. **Open the repository in GitHub Codespaces:**
@@ -183,15 +184,10 @@ My Flask app represents an effort to provide EU-based investors with a powerful 
 
     The application will be available at `http://localhost:5000/`.
 
-### Notes
-
-+ Make sure your database (SQLite in this case) and other dependencies are correctly set up.
-+ Adjust paths and configurations as necessary for your specific environment.
-
 </details>
 
 <details>
-<summary>### Troubleshooting</summary>
+<summary>Troubleshooting</summary>
 
 + Make sure your database (SQLite in this case) and other dependencies are correctly set up.
 + Adjust paths and configurations as necessary for your specific environment.
