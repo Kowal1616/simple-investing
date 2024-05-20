@@ -7,7 +7,7 @@
 
 
 # SIMPLE INVESTING - portfolio comparison tool
-### Video Demo:  <URL HERE>
+### Video Demo:  Coming soon..<URL HERE>
 ### Description:
 
 Simple Investing is a Flask App that aims at promotion of low-cost, low-maintains, long-term investing (Boggleheads style!). My app's main feature is a table which displays long term returns of chosen etfs based portfolios over 5, 10, 20 and 30 years periods. A comparison table is fed with extended historical data (enhanced with corresponding indexes and simulations) and up to date thanks to monthly performed updates from two independent data sources.
