@@ -1,4 +1,4 @@
-###### Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use only, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.
+Disclaimer: This repository contains the final project for the CS50 Course, shared for educational purposes and to demonstrate coding skills. While some of the data utilized in this project may be intended for personal use, it is not displayed on the application web page. The historical data stored in the database is sourced from various sources and has been enhanced with simulations.
 
 
 :star: For HOW-TO scroll to the bottom :star:
@@ -91,6 +91,7 @@ I suggest using GitHub's codespace to run project as it's the fastest way to see
     + Navigate to the repository on GitHub.
     + Click on the <> Code button.
     + Select Open with Codespaces and then New codespace.
+
 2. Codespaces will automatically set up your environment:
 
     + This includes creating a virtual environment and installing all required dependencies as specified in requirements.txt.
