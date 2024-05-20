@@ -78,49 +78,123 @@ I use `try/except` blocks in functions susceptible to errors, particularly those
 
 My Flask app represents an effort to provide EU-based investors with a powerful tool for long-term investment planning. With a focus on simplicity, reliability, and sustainability, I have developed a platform that empowers users to make informed decisions about their financial futures.
 
+# How to Run the Application
 
-# HOW-TO run the project
-I suggest using GitHub's codespace to run project as it's the fastest way to see what is it about.
-
-## Prerequisites
-
-+ Ensure you have a GitHub account with access to GitHub Codespaces.
-
-## Setting Up the Project
-
-1. Clone the repository and open in GitHub Codespaces:
-
-    + Navigate to the repository on GitHub.
-    + Click on the <> Code button.
-    + Select Open with Codespaces and then New codespace.
-
-2. Codespaces will automatically set up your environment:
-
-    + This includes creating a virtual environment and installing all required dependencies as specified in requirements.txt.
-
-## Running the Application
-
-1. Set the environment variables:
-    In GitHub Codespaces, these can be set directly in the terminal or by creating a .env file. Here’s how to set them in the terminal:
-```
-export FLASK_APP=app.py
-export FLASK_ENV=development
-```
-2. Initialize the database:
-```
-flask db init
-flask db migrate -m "Initial migration."
-flask db upgrade
-```
-3. Run the Flask application:
-```
-flask run --host=0.0.0.0
-```
-Find a link to access the application in terminal window.
+<details>
+<summary>### Running Locally</summary>
 
 
-## Troubleshooting
+1. **Clone the repository:**
 
-+ If you encounter any issues, ensure that all dependencies are correctly installed.
+    ```
+    git clone https://github.com/Kowal1616/simple-investing.git
+    cd your-repo
+    ```
+
+2. **Create a virtual environment:**
+
+    ```
+    python3 -m venv venv
+    source venv/bin/activate   # On Windows use `venv\Scripts\activate`
+    ```
+
+3. **Install the dependencies:**
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+4. **Set environment variables:**
+    The only necessary environment variable you need is (you can obtain it for free):
+    - `ALPHAVANTAGE_API_KEY`
+
+    For full functionality make sure you add those environment variables:
+
+    - `SENDGRID_API_KEY`
+    - `ADMIN_EMAIL`
+
+    You can set these variables in your environment or create a `.env` file in the root of your project and add the variables there.
+
+5. **Initialize the database:**
+
+    ```
+    flask db init
+    flask db migrate
+    flask db upgrade
+    ```
+
+6. **Run the application:**
+
+    ```
+    flask run
+    ```
+
+    The application will be available at `http://127.0.0.1:5000/`.
+
+</details>
+
+<details>
+<summary>### Running in GitHub Codespaces</summary>
+
+
+1. **Open the repository in GitHub Codespaces:**
+
+    - Navigate to your repository on GitHub.
+    - Click the `Code` button and select `Codespaces`.
+    - Create a new Codespace or open an existing one.
+
+2. **Install the dependencies:**
+
+    In the Codespace terminal, run:
+
+    ```
+    pip install -r requirements.txt
+    ```
+
+3. **Set environment variables:**
+
+    In the Codespace terminal, set the environment variable:
+
+    ```
+    export ALPHAVANTAGE_API_KEY=your_alphavantage_api_key
+    ```
+    For full fucntionality you can add:
+
+    ```
+    export SENDGRID_API_KEY=your_sendgrid_api_key
+    export ADMIN_EMAIL=your_admin_email
+    ```
+
+    Alternatively, you can set these variables in the `.devcontainer/devcontainer.json` file to automatically set them up when the Codespace is created.
+
+4. **Initialize the database:**
+
+    ```
+    flask db init
+    flask db migrate
+    flask db upgrade
+    ```
+
+5. **Run the application:**
+
+    ```
+    flask run --host=0.0.0.0
+    ```
+
+    The application will be available at `http://localhost:5000/`.
+
+### Notes
+
++ Make sure your database (SQLite in this case) and other dependencies are correctly set up.
++ Adjust paths and configurations as necessary for your specific environment.
+
+</details>
+
+<details>
+<summary>### Troubleshooting</summary>
+
++ Make sure your database (SQLite in this case) and other dependencies are correctly set up.
++ Adjust paths and configurations as necessary for your specific environment.
 + Make sure the environment variables are correctly set.
 + Check the Flask documentation for more details on configuration and setup: Flask Documentation
+</details>
