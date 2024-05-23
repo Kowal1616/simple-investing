@@ -33,6 +33,8 @@ def initializer():
     toolbar = DebugToolbarExtension(app)
     # Configuration for Flask Debug Toolbar
     app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+    # Setting temp key for development environment only
+    app.config['SECRET_KEY'] = 'temporary_secret_key'
 
     return app
 
