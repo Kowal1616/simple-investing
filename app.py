@@ -13,7 +13,7 @@ def initializer():
     # Configure application
     app = Flask(__name__)
 
-    app.debug = False
+    app.debug = True
 
     # Configure SQLAlchemy Library to use SQLite database
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///financial_data.db'
