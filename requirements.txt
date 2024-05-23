@@ -6,3 +6,4 @@ yfinance
 pandas
 requests
 python-dotenv
+flask-debugtoolbar

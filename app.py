@@ -6,6 +6,7 @@ from flask import jsonify
 from models import db, Portfolios
 import helpers
 import logging
+from flask_debugtoolbar import DebugToolbarExtension
 
 
 def initializer():
@@ -27,6 +28,11 @@ def initializer():
     # Create all tables
     with app.app_context():
         db.create_all()
+
+    # Initialize the Flask Debug Toolbar
+    toolbar = DebugToolbarExtension(app)
+    # Configuration for Flask Debug Toolbar
+    app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
     return app
 
