@@ -5,5 +5,56 @@
 {% endblock %}
 
 {% block main %}
-    code
+<br>
+<br>
+<p class="justify-align">Click on the ETF's name to get detailed data - you will get redirected to external webpage (AT).</p>
+<p class="justify-align">Simple Investing is not affiliated to AT and it's authors, we do not get any commision for linking, we just found
+    it a vary valuable resource for European investor :) 
+</p>
+
+
+<br>
+<div id="etfTable"></div>
+<!-- JavaScript code to render Grid.js table -->
+<script type="module">
+    import { Grid } from "https://unpkg.com/gridjs?module";
+
+    new Grid({
+        columns: [
+            { id: 'ETF', name: 'ETF' },
+            { id: 'Symbol', name: 'Symbol (Ticker)' },
+            { id: 'TER', name: 'TER' },
+            { id: 'Type', name: 'Type' },
+            { id: 'Domicile', name: 'Fund Domicile' }
+        ],
+        data: [
+            ['iShares Core S&P 500 UCITS Accumulating', 'SXR8', '0,07%', 'Accumulating', 'Ireland'],
+            ['Xtrackers MSCI World Information Technology UCITS Accumulating', 'XDWT', '0,25%', 'Accumulating', 'Ireland'],
+            ['iShares MSCI ACWI UCITS Accumulating', 'IUSQ', '0,2%', 'Accumulating', 'Ireland'],
+            ['iShares Core MSCI World UCITS Accumulating', 'EUNL', '0,2%', 'Accumulating', 'Ireland'],
+            ['SPDR Bloomberg Euro High Yield Bond UCITS Distributing', 'SYBJ', '0,4%', 'Distributing', 'Ireland'],
+            ['Xetra Gold Accumulating*', '4GLD', '0%!', 'Accumulating', 'Germany']
+        ],
+        style: {
+            table: {
+                border: '3px solid #ccc'
+            },
+            th: {
+                'text-align': 'center',
+                'font-size': '13px',
+                whiteSpace: 'normal',
+                padding: '10px',
+                border: '3px solid #ccc'
+            },
+            td: {
+                'text-align': 'center',
+                'font-size': '13px',
+                padding: '10px',
+                border: '3px solid #ccc'
+            }
+        }
+    }).render(document.getElementById('etfTable'));
+</script>
+<p class="left-align"><small>* This fund is an ETC as it tracks the price of commodity.</small></p>
+<br>
 {% endblock %}
