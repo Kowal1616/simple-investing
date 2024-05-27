@@ -5,7 +5,18 @@
 {% endblock %}
 
 {% block main %}
-
+<br>
+<br>
+<h5 class="left-align">Welcome to Simple Investing</h5>
+    <p class="justify-align">Make informed investment decisions with our powerful comparison tool. Explore
+        different long-term strategies and see how they could make your savings grow over 5, 10, 20, and
+        30 years.
+    </p>
+    <p class="justify-align">
+        Even if you're new to investing our platform empowers you to build and optimize your portfolio with confidence.
+    </p>
+    <br>
+    <p class="center-align"><b>Simple Investing = Saving Made EASY</b></p>
 <br>
 <div id="portfolioTable"></div>
 <!-- JavaScript code to render Grid.js table -->
@@ -88,5 +99,15 @@
             }
 
     }).render(document.getElementById('portfolioTable'));
-</script>  
+</script>
+<br>
+<p class="left-align"><b>Understanding the table</b></p>
+    <p class="left-align"><small>Our metrics are based on investments in european ETFs (UCITS) and are computed under the following assumptions:
+        <ul class="left-align">
+            <li>Investment is made in EUR</li>
+            <li>Calculations are based on Adjusted Close Prices</li>
+            <li>Accumulating ETFs were used where possible</li>
+        </ul>  
+    </small></p>
+<br>
 {% endblock %}
