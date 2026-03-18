@@ -1,17 +1,13 @@
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 import pandas as pd
 import datetime
 import inspect
 from models import *
 import logging
 from data_providers import FinancialDataService
+from notifications import SystemNotifier
 
-# Use SendGrid api_key that is stored as environment variable
-sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
-
-# Use admin email that is stored as environment variable
+# Load admin email from environment
 admin_email = os.getenv('ADMIN_EMAIL')
 
 
@@ -352,42 +348,14 @@ def update_portfolios_drawdown(portfolios_drawdown, session):
         update_error_email(e)
 
 
-def send_email(title, email_content):
-    """ Send e-mails via SendGrid """
-    if not sendgrid_api_key or sendgrid_api_key == "dummy_key":
-        logging.warning("SendGrid API key not found. Email sending skipped.")
-        return False
-
-    message = Mail(
-        from_email='error@simple-investing.com',
-        to_emails=admin_email,
-        subject='{}'.format(title),
-        html_content='{}'.format(email_content))
-    try:
-        sendgrid_client = SendGridAPIClient(sendgrid_api_key)
-        response = sendgrid_client.send(message)
-        print(response.status_code)
-    except Exception as e:
-        function_name = inspect.currentframe().f_code.co_name
-        logging.error(f'An error occurred in {function_name}: %s', e, exc_info=True)
-        return False
-
-    return True
-
-
 def update_error_email(e):
-    # Handle any errors that occurred
+    """Log the error and send an alert email to the administrator."""
     print(f"An error occurred: {e}")
-
-    if not sendgrid_api_key or sendgrid_api_key == "dummy_key":
-        logging.warning("SendGrid API key not found. Skipping email notification.")
-        return
-
-    # Send email notification to admin
-    title = 'SimpleInvesting - Database Update Error in your app'
-    function_name = inspect.currentframe().f_code.co_name
-    message = (f'<strong>The {function_name} script failed to Update data. An error occured: {e}.</strong>')
-    send_email(title, message)
+    logging.error('Application error: %s', e)
+    notifier = SystemNotifier()
+    notifier.send_error_alert(
+        f'SimpleInvesting database update failed. Error: {e}'
+    )
 
 
 

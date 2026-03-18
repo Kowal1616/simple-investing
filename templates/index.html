@@ -1,0 +1,115 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Comparison tool
+{% endblock %}
+
+{% block main %}
+<br>
+<br>
+<h5 class="left-align">Welcome to Simple Investing</h5>
+    <p class="justify-align">Make informed investment decisions with our powerful comparison tool. Explore
+        different long-term strategies and see how they could make your savings grow over 5, 10, 20, and
+        30 years.
+    </p>
+    <p class="justify-align">
+        Even if you're new to investing our platform empowers you to build and optimize your portfolio with confidence.
+    </p>
+    <br>
+    <p class="center-align"><b>Simple Investing = Saving Made EASY</b></p>
+<br>
+<div id="portfolioTable"></div>
+<!-- JavaScript code to render Grid.js table -->
+<script type="module">
+    import { Grid } from "https://unpkg.com/gridjs?module";
+
+    new Grid({
+            columns: [
+                { id: 'name', name: 'Portfolio Name', sort: false },
+                { id: 'assets', name: 'Assets', width: 'auto' }, // Set width to auto
+                {
+                    id: 'returns',
+                    name: 'Annual Yield (CAGR) for periods of:',
+                    columns: [
+                        {
+                            id: 'return5',
+                            name: '5 Years',
+                            sort: true,
+                            formatter: (cell) => {
+                                return cell + '%';
+                            }
+                        },
+                        {
+                            id: 'return10',
+                            name: '10 Years',
+                            sort: true,
+                            formatter: (cell) => {
+                                return cell + '%';
+                            }
+                        },
+                        {
+                            id: 'return20',
+                            name: '20 Years',
+                            sort: true,
+                            formatter: (cell) => {
+                                return cell + '%';
+                            }
+                        },
+                        {
+                            id: 'return30',
+                            name: '30 Years',
+                            sort: true,
+                            formatter: (cell) => {
+                                return cell + '%';
+                            }
+                        },
+                    ]
+                }
+            ],
+            server: {
+                url: '/api/data',
+                then: data => {
+                    // Round numerical values for returns to two decimal points
+                    data.forEach(row => {
+                        row.return5 = (row.return5);
+                        row.return10 = (row.return10);
+                        row.return20 = (row.return20);
+                        row.return30 = (row.return30);
+                    });
+                    return data;
+                }
+            },
+            fixedHeader: true,
+            sort: true,
+            style: {
+                table: {
+                    border: '3px solid #ccc'
+                },
+                th: {
+                    'text-align': 'center',
+                    'font-size': '13px',
+                    whiteSpace: 'normal',
+                    padding: '2px',
+                    border: '3px solid #ccc'
+                },
+                td: {
+                    'text-align': 'center',
+                    'font-size': '13px'
+                }
+            }
+
+    }).render(document.getElementById('portfolioTable'));
+</script>
+<br>
+<p class="left-align"><b>Understanding the table</b></p>
+    <p class="left-align"><small>Our metrics are based on investments in european ETFs (UCITS) and are computed under the following assumptions:
+        <ul class="left-align">
+            <li>Investment is made in EUR</li>
+            <li>Calculations are based on Adjusted Close Prices</li>
+            <li>Accumulating ETFs were used where possible</li>
+        </ul>  
+    </small></p>
+<br>
+<p><strong>Historical results should NOT be considered equal to future returns!</strong></p>
+<br>
+{% endblock %}

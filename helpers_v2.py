@@ -18,17 +18,15 @@ import logging
 import datetime
 
 import pandas as pd
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
 
 from models_v2 import Etfs, HistoricalDataEtfs, Portfolios, PortfolioComposition
 from models_v2 import InflationRates, InflationHistoricalPeriods
 from data_providers import FinancialDataService
+from notifications import SystemNotifier
 
 # ---------------------------------------------------------------------------
 # Environment
 # ---------------------------------------------------------------------------
-sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
 admin_email = os.getenv('ADMIN_EMAIL')
 
 
@@ -63,7 +61,7 @@ def get_etfs_data(session):
         data_service = FinancialDataService()
 
         for etf in etfs:
-            final = data_service.get_consensus_price(etf.yfinance_name)
+            final = data_service.get_consensus_price(etf.external_ticker)
 
             if final is not None:
                 source = 'consensus'
@@ -74,9 +72,9 @@ def get_etfs_data(session):
                             .order_by(HistoricalDataEtfs.date.desc())
                             .first())
                 final = last_row.price if last_row else 0.0
-                logging.warning('Price retrieval failed for %s — using last known price', etf.yfinance_name)
+                logging.warning('Price retrieval failed for %s — using last known price', etf.external_ticker)
                 source = 'fallback'
-                failed.append(etf.yfinance_name)
+                failed.append(etf.external_ticker)
 
             result.append({'etf_id': etf.id, 'date': csv_date, 'price': final,
                            'source': source})
@@ -99,7 +97,7 @@ def append_etfs_prices(etfs_prices, session):
             return
 
         for row in etfs_prices:
-            # Check for duplicates (UniqueConstraint will also guard this at DB level)
+            # Check for duplicates
             exists = (session.query(HistoricalDataEtfs)
                       .filter_by(date=row['date'], etf_id=row['etf_id'])
                       .first())
@@ -107,12 +105,18 @@ def append_etfs_prices(etfs_prices, session):
                 logging.info('Row for etf_id=%s date=%s already exists — skipping',
                              row['etf_id'], row['date'])
                 continue
+            
+            # Anonymize source if needed (just in case it's still using old names)
+            source = row.get('source', 'provider_a')
+            if source == 'yfinance': source = 'provider_a'
+            elif source == 'alphavantage': source = 'provider_b'
+
             session.add(HistoricalDataEtfs(
                 date=row['date'],
                 etf_id=row['etf_id'],
                 price=row['price'],
                 is_simulated=False,
-                source=row.get('source', 'yfinance'),
+                source=source,
             ))
         session.commit()
 
@@ -157,19 +161,6 @@ def get_etfs_yields(session):
         all_yields.append(etf_yields)
 
     return all_yields
-
-
-def update_etfs_yields(etfs_yields, session):
-    """Write computed CAGR yields back to the Etfs table."""
-    try:
-        etfs = session.query(Etfs).all()
-        for etf, yields in zip(etfs, etfs_yields):
-            etf.yield5, etf.yield10, etf.yield20, etf.yield30, etf.yield40 = yields
-        session.commit()
-    except Exception as e:
-        fn = inspect.currentframe().f_code.co_name
-        logging.error('Error in %s: %s', fn, e, exc_info=True)
-        update_error_email(e)
 
 
 # ===========================================================================
@@ -250,20 +241,6 @@ def get_portfolio_returns(session):
     return all_returns
 
 
-def update_portfolios_returns(portfolios_returns, session):
-    """Write computed portfolio returns to the Portfolios table."""
-    try:
-        portfolios = session.query(Portfolios).all()
-        for portfolio, returns in zip(portfolios, portfolios_returns):
-            (portfolio.return5, portfolio.return10, portfolio.return20,
-             portfolio.return30, portfolio.return40) = returns
-        session.commit()
-    except Exception as e:
-        fn = inspect.currentframe().f_code.co_name
-        logging.error('Error in %s: %s', fn, e, exc_info=True)
-        update_error_email(e)
-
-
 # ===========================================================================
 # Inflation
 # ===========================================================================
@@ -273,12 +250,15 @@ def get_inflation(session):
     Compute cumulative inflation for each currency over 5, 10, 20, 30, 40-year periods.
     Sums the last N annual rates from inflation_rates table.
     """
-    currencies = [c[0] for c in session.query(InflationHistoricalPeriods.currency).all()]
+    currencies = [c[0] for c in session.query(InflationRates.currency_code).distinct().all()]
     result = []
 
     for currency in currencies:
-        col = getattr(InflationRates, f'{currency}_inflation_rate')
-        rates = [r[0] for r in session.query(col).all()]
+        rates_rows = (session.query(InflationRates.rate)
+                      .filter_by(currency_code=currency)
+                      .order_by(InflationRates.year)
+                      .all())
+        rates = [r[0] for r in rates_rows]
         n = len(rates)
         periods_inflation = []
         for yrs in [5, 10, 20, 30, 40]:
@@ -292,18 +272,7 @@ def get_inflation(session):
     return result
 
 
-def update_inflation(currencies_inflation, session):
-    """Write computed inflation periods back to InflationHistoricalPeriods."""
-    try:
-        periods = session.query(InflationHistoricalPeriods).all()
-        for period, inf in zip(periods, currencies_inflation):
-            (period.inflation5, period.inflation10, period.inflation20,
-             period.inflation30, period.inflation40) = inf
-        session.commit()
-    except Exception as e:
-        fn = inspect.currentframe().f_code.co_name
-        logging.error('Error in %s: %s', fn, e, exc_info=True)
-        update_error_email(e)
+
 
 
 # ===========================================================================
@@ -367,50 +336,14 @@ def get_portfolios_drawdown(portfolios_results):
     return portfolios_drawdown
 
 
-def update_portfolios_drawdown(portfolios_drawdown, session):
-    """
-    Write max drawdown (worst value — most negative) to Portfolios table.
-    FIX: V1 used max(), returning ~0. We now use min() to get the worst drawdown.
-    """
-    try:
-        portfolios = session.query(Portfolios).all()
-        for portfolio, drawdown in zip(portfolios, portfolios_drawdown):
-            if drawdown is None or (hasattr(drawdown, 'empty') and drawdown.empty):
-                portfolio.max_drawdown5 = 0.0
-            else:
-                # min() gives the most negative (worst) drawdown
-                portfolio.max_drawdown5 = round(float(drawdown.min()), 4)
-        session.commit()
-    except Exception as e:
-        fn = inspect.currentframe().f_code.co_name
-        logging.error('Error in %s: %s', fn, e, exc_info=True)
-        update_error_email(e)
-
-
 # ===========================================================================
-# Email notifications
+# Error notifications
 # ===========================================================================
-
-def send_email(title, content):
-    if not sendgrid_api_key or sendgrid_api_key == 'dummy_key':
-        logging.warning('SendGrid key not set — email skipped.')
-        return False
-    msg = Mail(from_email='error@simple-investing.com',
-               to_emails=admin_email,
-               subject=title,
-               html_content=str(content))
-    try:
-        sg = SendGridAPIClient(sendgrid_api_key)
-        sg.send(msg)
-        return True
-    except Exception as e:
-        logging.error('send_email error: %s', e, exc_info=True)
-    return False
-
 
 def update_error_email(e):
-    logging.error('update error: %s', e)
-    if not sendgrid_api_key or sendgrid_api_key == 'dummy_key':
-        return
-    send_email('SimpleInvesting — DB Update Error',
-               f'<strong>Error occurred: {e}</strong>')
+    """Log the error and send an alert email to the administrator."""
+    logging.error('Application error: %s', e)
+    notifier = SystemNotifier()
+    notifier.send_error_alert(
+        f'SimpleInvesting database update failed. Error: {e}'
+    )
