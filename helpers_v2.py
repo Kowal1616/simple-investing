@@ -20,7 +20,7 @@ import datetime
 import pandas as pd
 
 from models_v2 import Etfs, HistoricalDataEtfs, Portfolios, PortfolioComposition
-from models_v2 import InflationRates, InflationHistoricalPeriods
+from models_v2 import InflationRates
 from data_providers import FinancialDataService
 from notifications import SystemNotifier
 

@@ -43,7 +43,13 @@ class ProviderA(BaseDataProvider):
         start_date = end_date.replace(day=1)
 
         base_url = os.getenv('DATA_PROVIDER_A_HOST', 'https://api.marketdata.example.com')
-        url = f"{base_url}/eod/{ticker}?api_token={api_key}&fmt=json&from={start_date}&to={end_date}&period=m"
+        # EODHD Mapping: German stocks/ETFs use .XETRA suffix
+        if ticker.endswith('.DE'):
+            provider_ticker = ticker.replace('.DE', '.XETRA')
+        else:
+            provider_ticker = ticker
+        
+        url = f"{base_url}/eod/{provider_ticker}?api_token={api_key}&fmt=json&from={start_date}&to={end_date}&period=m"
 
         try:
             response = requests.get(url, timeout=10)
@@ -76,10 +82,25 @@ class ProviderB(BaseDataProvider):
         start_date = end_date.replace(day=1)
 
         base_url = os.getenv('DATA_PROVIDER_B_HOST', 'https://api.marketdata2.example.com')
-        url = f"{base_url}/v1/eod?access_key={api_key}&symbols={ticker}&date_from={start_date}&date_to={end_date}"
+        # Robust URL construction: if base_url ends with /v1, don't repeat it
+        if base_url.rstrip('/').endswith('/v1'):
+            base_url = base_url.rstrip('/').replace('/v1', '')
+        
+        # Marketstack Mapping: German stocks/ETFs use .XETRA suffix
+        if ticker.endswith('.DE'):
+            provider_ticker = ticker.replace('.DE', '.XETRA')
+        else:
+            provider_ticker = ticker
+            
+        url = f"{base_url.rstrip('/')}/v1/eod?access_key={api_key}&symbols={provider_ticker}&date_from={start_date}&date_to={end_date}"
+
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'application/json'
+        }
 
         try:
-            response = requests.get(url, timeout=10)
+            response = requests.get(url, headers=headers, timeout=10)
             response.raise_for_status()
             data = response.json()
             if data and 'data' in data and len(data['data']) > 0:
@@ -159,6 +180,7 @@ class FinancialDataService:
                     )
 
             consensus = sum(prices) / len(prices)
+            logging.info(f"Consensus price for {ticker}: {consensus} (calculated from {len(prices)} successful sources)")
             return round(consensus, 2)
 
         logging.error(f"All data sources failed for {ticker}.")
