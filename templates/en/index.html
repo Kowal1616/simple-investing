@@ -104,10 +104,10 @@
             </div>
           </td>
           <td>${p.assets}</td>
-          <td><span class="cagr-badge">${p.return5}%</span></td>
-          <td><span class="cagr-badge">${p.return10}%</span></td>
-          <td><span class="cagr-badge">${p.return20}%</span></td>
-          <td><span class="cagr-badge">${p.return30}%</span></td>
+          <td><span class="cagr-badge ${p.return5 < 0 ? 'negative' : ''}">${p.return5}%</span></td>
+          <td><span class="cagr-badge ${p.return10 < 0 ? 'negative' : ''}">${p.return10}%</span></td>
+          <td><span class="cagr-badge ${p.return20 < 0 ? 'negative' : ''}">${p.return20}%</span></td>
+          <td><span class="cagr-badge ${p.return30 < 0 ? 'negative' : ''}">${p.return30}%</span></td>
         </tr>
       `).join('');
     lucide.createIcons();
