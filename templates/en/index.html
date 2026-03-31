@@ -8,10 +8,7 @@
 <!-- Hero -->
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-badge">
-      <i data-lucide="globe" style="width:13px;height:13px;"></i>
-      For European investors
-    </div>
+
     <h1>Compare <span class="highlight">investment</span><br>strategies</h1>
     <p class="tagline">Long term — No stress.<br>ETF UCITS portfolios with historical data up to 30 years, updated monthly.</p>
     <div class="hero-actions">
@@ -45,9 +42,9 @@
     <div class="stat-label">methodology</div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon"><i data-lucide="refresh-cw" style="width:22px;height:22px;"></i></div>
-    <div class="stat-value">1×</div>
-    <div class="stat-label">per month</div>
+    <div class="stat-icon"><i data-lucide="shield-check" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value" style="font-size: 20px;">UCITS</div>
+    <div class="stat-label">european etfs</div>
   </div>
 </div>
 
@@ -61,11 +58,11 @@
       <thead>
         <tr>
           <th>Portfolio</th>
-          <th>Assets</th>
-          <th>5 Years</th>
-          <th>10 Years</th>
-          <th>20 Years</th>
-          <th>30 Years</th>
+          <th data-sort="assets" style="cursor:pointer; user-select:none;" title="Sort by assets">Assets</th>
+          <th data-sort="return5" style="cursor:pointer; user-select:none;" title="Sort by 5 yr">5 Years</th>
+          <th data-sort="return10" style="cursor:pointer; user-select:none;" title="Sort by 10 yr">10 Years</th>
+          <th data-sort="return20" style="cursor:pointer; user-select:none;" title="Sort by 20 yr">20 Years</th>
+          <th data-sort="return30" style="cursor:pointer; user-select:none;" title="Sort by 30 yr">30 Years</th>
         </tr>
       </thead>
       <tbody id="portfolio-tbody">
@@ -88,13 +85,14 @@
 </style>
 
 <script>
-  async function loadPortfolios() {
+  let portfolioData = [];
+  let sortCol = null;
+  let sortAsc = true;
+  const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
+
+  function renderTable() {
     const tbody = document.getElementById('portfolio-tbody');
-    const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
-    try {
-      const res = await fetch('/api/data');
-      const data = await res.json();
-      tbody.innerHTML = data.map((p, i) => `
+    tbody.innerHTML = portfolioData.map((p, i) => `
         <tr>
           <td>
             <div class="port-name">
@@ -112,10 +110,51 @@
           <td><span class="cagr-badge">${p.return30}%</span></td>
         </tr>
       `).join('');
+    lucide.createIcons();
+  }
+
+  function sortData(colKey) {
+    if (sortCol === colKey) {
+      sortAsc = !sortAsc;
+    } else {
+      sortCol = colKey;
+      sortAsc = true;
+    }
+    portfolioData.sort((a, b) => {
+      let valA = parseFloat(a[colKey]);
+      let valB = parseFloat(b[colKey]);
+      return sortAsc ? valA - valB : valB - valA;
+    });
+    renderTable();
+    updateHeaders();
+  }
+
+  function updateHeaders() {
+    const ths = document.querySelectorAll('.data-table th[data-sort]');
+    ths.forEach(th => {
+      let baseText = th.innerText.replace(/ ↑| ↓/g, '');
+      if (th.getAttribute('data-sort') === sortCol) {
+        th.innerText = baseText + (sortAsc ? ' ↑' : ' ↓');
+      } else {
+        th.innerText = baseText;
+      }
+    });
+  }
+
+  async function loadPortfolios() {
+    const tbody = document.getElementById('portfolio-tbody');
+    try {
+      const res = await fetch('/api/data');
+      portfolioData = await res.json();
+      renderTable();
+      
+      document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
+      });
     } catch(e) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Error loading data. Please refresh the page.</td></tr>';
+      lucide.createIcons();
     }
-    lucide.createIcons();
   }
   document.addEventListener('DOMContentLoaded', loadPortfolios);
 </script>
