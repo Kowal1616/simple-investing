@@ -1,0 +1,75 @@
+{% extends "layout.html" %}
+{% block meta_description %}ZenETFs — Lista ETF UCITS dla europejskich inwestorów. Fundusze akumulujące, niskie TER, domicyl w Irlandii i Niemczech.{% endblock %}
+{% block title %}ETFy{% endblock %}
+
+{% block main %}
+<div class="page-hero">
+  <div class="section-label">Instrumenty bazowe</div>
+  <h1>ETFy UCITS</h1>
+  <p>Kliknij nazwę funduszu, aby przejść na stronę zewnętrzną z szczegółowymi danymi. ZenETFs nie jest powiązany z żadnym brokerem i nie otrzymuje prowizji za odesłania.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Fundusz ETF</th>
+          <th>Ticker</th>
+          <th>TER</th>
+          <th>Typ</th>
+          <th>Domicyl</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-weight:600;"><a href="https://www.justetf.com/en/etf-profile.html?isin=IE00B5BMR087" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares Core S&amp;P 500 UCITS Accumulating</a></td>
+          <td><span class="ticker-code">SXR8</span></td>
+          <td>0,07%</td>
+          <td><span class="type-badge type-acc">Akumulujący</span></td>
+          <td>🇮🇪 Irlandia</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;"><a href="https://www.justetf.com/en/etf-profile.html?isin=IE00BM67HT60" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xtrackers MSCI World Information Technology UCITS Accumulating</a></td>
+          <td><span class="ticker-code">XDWT</span></td>
+          <td>0,25%</td>
+          <td><span class="type-badge type-acc">Akumulujący</span></td>
+          <td>🇮🇪 Irlandia</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;"><a href="https://www.justetf.com/en/etf-profile.html?isin=IE00B6R52259" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares MSCI ACWI UCITS Accumulating</a></td>
+          <td><span class="ticker-code">IUSQ</span></td>
+          <td>0,20%</td>
+          <td><span class="type-badge type-acc">Akumulujący</span></td>
+          <td>🇮🇪 Irlandia</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;"><a href="https://www.justetf.com/en/etf-profile.html?isin=IE00B4L5Y983" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares Core MSCI World UCITS Accumulating</a></td>
+          <td><span class="ticker-code">EUNL</span></td>
+          <td>0,20%</td>
+          <td><span class="type-badge type-acc">Akumulujący</span></td>
+          <td>🇮🇪 Irlandia</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;"><a href="https://www.justetf.com/en/etf-profile.html?isin=IE00B6TLBW47" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">SPDR Bloomberg Euro High Yield Bond UCITS Distributing</a></td>
+          <td><span class="ticker-code">SYBJ</span></td>
+          <td>0,40%</td>
+          <td><span class="type-badge type-dist">Wypłacający</span></td>
+          <td>🇮🇪 Irlandia</td>
+        </tr>
+        <tr>
+          <td style="font-weight:600;"><a href="https://www.xetra.com/xetra-en/instruments/etcs/xetra-gold" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xetra Gold*</a></td>
+          <td><span class="ticker-code">4GLD</span></td>
+          <td>0%</td>
+          <td><span class="type-badge type-acc">Akumulujący</span></td>
+          <td>🇩🇪 Niemcy</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="info-note" style="margin-top:12px;">
+    <i data-lucide="alert-circle" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
+    <span>* Xetra Gold to technicznie ETC (Exchange-Traded Commodity), nie ETF, gdyż śledzi cenę surowca. TER = Total Expense Ratio — roczny koszt funduszu.</span>
+  </div>
+</div>
+{% endblock %}

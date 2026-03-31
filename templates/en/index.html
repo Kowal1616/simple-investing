@@ -1,0 +1,123 @@
+{% extends "layout.html" %}
+
+{% block meta_description %}ZenETFs — Compare long-term ETF portfolio strategies for European investors. CAGR data for 5, 10, 20 and 30 years.{% endblock %}
+{% block title %}Comparison Tool{% endblock %}
+
+{% block main %}
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <i data-lucide="globe" style="width:13px;height:13px;"></i>
+      For European investors
+    </div>
+    <h1>Compare <span class="highlight">investment</span><br>strategies</h1>
+    <p class="tagline">Long term — No stress.<br>ETF UCITS portfolios with historical data up to 30 years, updated monthly.</p>
+    <div class="hero-actions">
+      <a href="#comparison" class="btn-primary">
+        <i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i>
+        Go to table
+      </a>
+      <a href="/en/portfolios" class="btn-secondary">
+        <i data-lucide="briefcase" style="width:16px;height:16px;"></i>
+        Browse portfolios
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="calendar" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">30</div>
+    <div class="stat-label">years of data</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="briefcase" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">6</div>
+    <div class="stat-label">portfolios</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="trending-up" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">CAGR</div>
+    <div class="stat-label">methodology</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="refresh-cw" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">1×</div>
+    <div class="stat-label">per month</div>
+  </div>
+</div>
+
+<!-- Comparison Table -->
+<section class="section" id="comparison">
+  <div class="section-label">Comparison Tool</div>
+  <div class="section-heading">Annual Returns (CAGR)</div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Portfolio</th>
+          <th>Assets</th>
+          <th>5 Years</th>
+          <th>10 Years</th>
+          <th>20 Years</th>
+          <th>30 Years</th>
+        </tr>
+      </thead>
+      <tbody id="portfolio-tbody">
+        <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">
+          <i data-lucide="loader" style="width:18px;height:18px;display:inline;animation:spin 1s linear infinite;"></i>
+          Loading data...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-note">
+    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
+    <span>Based on European UCITS ETF prices (EUR). CAGR assumes dividend reinvestment (accumulating funds). Historical performance is not indicative of future results.</span>
+  </div>
+</section>
+
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  async function loadPortfolios() {
+    const tbody = document.getElementById('portfolio-tbody');
+    const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
+    try {
+      const res = await fetch('/api/data');
+      const data = await res.json();
+      tbody.innerHTML = data.map((p, i) => `
+        <tr>
+          <td>
+            <div class="port-name">
+              <div class="port-dot" style="background:${colors[i % colors.length]}"></div>
+              <div>
+                ${p.name}
+                <div class="port-sub">${p.assets} ETF${p.assets > 1 ? 's' : ''}</div>
+              </div>
+            </div>
+          </td>
+          <td>${p.assets}</td>
+          <td><span class="cagr-badge">${p.return5}%</span></td>
+          <td><span class="cagr-badge">${p.return10}%</span></td>
+          <td><span class="cagr-badge">${p.return20}%</span></td>
+          <td><span class="cagr-badge">${p.return30}%</span></td>
+        </tr>
+      `).join('');
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Error loading data. Please refresh the page.</td></tr>';
+    }
+    lucide.createIcons();
+  }
+  document.addEventListener('DOMContentLoaded', loadPortfolios);
+</script>
+
+{% endblock %}
