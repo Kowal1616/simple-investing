@@ -72,8 +72,36 @@ async def detect_language(request: Request) -> str:
     return "en"
 
 
+@app.middleware("http")
+async def language_cookie_middleware(request: Request, call_next):
+    """
+    Global middleware to ensure the 'lang' cookie is set immediately 
+    when the user navigates to a language-specific route (/pl/ or /en/).
+    """
+    path = request.url.path
+    lang_from_path = None
+    if path.startswith("/pl"):
+        lang_from_path = "pl"
+    elif path.startswith("/en"):
+        lang_from_path = "en"
+
+    response = await call_next(request)
+
+    if lang_from_path:
+        set_lang_cookie(response, lang_from_path)
+    
+    return response
+
+
 def set_lang_cookie(response: Response, lang: str) -> None:
-    response.set_cookie("lang", lang, max_age=60 * 60 * 24 * 365, samesite="lax")
+    # Always set path="/" so the cookie is available across the whole site
+    response.set_cookie(
+        "lang", 
+        lang, 
+        max_age=60 * 60 * 24 * 365, 
+        path="/", 
+        samesite="lax"
+    )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -118,76 +146,60 @@ async def root(request: Request):
 
 @app.get("/pl/", response_class=HTMLResponse)
 async def pl_index(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "pl/index.html", ctx(request, "pl", "index")
     )
-    set_lang_cookie(response, "pl")
-    return response
 
 
 @app.get("/pl/portfolios", response_class=HTMLResponse)
 async def pl_portfolios(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "pl/portfolios.html", ctx(request, "pl", "portfolios")
     )
-    set_lang_cookie(response, "pl")
-    return response
 
 
 @app.get("/pl/etfs", response_class=HTMLResponse)
 async def pl_etfs(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "pl/etfs.html", ctx(request, "pl", "etfs")
     )
-    set_lang_cookie(response, "pl")
-    return response
 
 
 @app.get("/pl/about", response_class=HTMLResponse)
 async def pl_about(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "pl/about.html", ctx(request, "pl", "about")
     )
-    set_lang_cookie(response, "pl")
-    return response
 
 
 # ── English routes (/en/) ─────────────────────────────────────────────────────
 
 @app.get("/en/", response_class=HTMLResponse)
 async def en_index(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "en/index.html", ctx(request, "en", "index")
     )
-    set_lang_cookie(response, "en")
-    return response
 
 
 @app.get("/en/portfolios", response_class=HTMLResponse)
 async def en_portfolios(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "en/portfolios.html", ctx(request, "en", "portfolios")
     )
-    set_lang_cookie(response, "en")
-    return response
 
 
 @app.get("/en/etfs", response_class=HTMLResponse)
 async def en_etfs(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "en/etfs.html", ctx(request, "en", "etfs")
     )
-    set_lang_cookie(response, "en")
-    return response
 
 
 @app.get("/en/about", response_class=HTMLResponse)
 async def en_about(request: Request):
-    response = templates.TemplateResponse(
+    return templates.TemplateResponse(
         request, "en/about.html", ctx(request, "en", "about")
     )
-    set_lang_cookie(response, "en")
-    return response
 
 
 # ── API ───────────────────────────────────────────────────────────────────────
