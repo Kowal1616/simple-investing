@@ -12,12 +12,17 @@ import helpers_v2 as helpers
 
 app = FastAPI()
 
+# Setup absolute path references for prod reliability
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # Mount static files if the directory exists
-if os.path.isdir("static"):
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+static_dir = os.path.join(BASE_DIR, "static")
+if os.path.isdir(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Setup Jinja2 templates
-templates = Jinja2Templates(directory="templates")
+templates_dir = os.path.join(BASE_DIR, "templates")
+templates = Jinja2Templates(directory=templates_dir)
 
 
 # ── Startup ──────────────────────────────────────────────────────────────────
