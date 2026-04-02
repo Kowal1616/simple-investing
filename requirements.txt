@@ -10,3 +10,4 @@ uvicorn[standard]
 pydantic
 jinja2
 httpx
+gunicorn

@@ -1,21 +1,85 @@
 import os
 import httpx
+import logging
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from flask import Flask
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.base import STATE_RUNNING
+from dotenv import load_dotenv
 
-# Import existing logic to reuse Flask-SQLAlchemy alongside FastAPI
-from app import app as flask_app
+# Internal imports
 from models_v2 import db, Portfolios
 import helpers_v2 as helpers
 
-app = FastAPI()
-
-# Setup absolute path references for prod reliability
+# ── Setup & Configuration ───────────────────────────────────────────────────
+load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Mount static files if the directory exists
+# Configure logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# ── Flask App & DB Configuration ───────────────────────────────────────────
+# We use a Flask instance purely for Flask-SQLAlchemy compatibility 
+# with the existing models and database migration state.
+def create_flask_app():
+    f_app = Flask(__name__, instance_relative_config=True)
+    f_app.debug = False
+    
+    # DB path relative to script location
+    db_path = os.path.join(BASE_DIR, 'instance', 'financial_data_v2.db')
+    f_app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
+    f_app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    db.init_app(f_app)
+    
+    with f_app.app_context():
+        db.create_all()
+    
+    return f_app
+
+flask_app = create_flask_app()
+
+# ── Scheduler Configuration ────────────────────────────────────────────────
+scheduler = BackgroundScheduler(timezone='Europe/Berlin')
+
+def update_job():
+    """Periodic task to refresh ETF data."""
+    with flask_app.app_context():
+        try:
+            logging.info("Starting background update job...")
+            etfs_prices = helpers.get_etfs_data(db.session)
+            helpers.append_etfs_prices(etfs_prices, db.session)
+            
+            # Additional calculations can be re-enabled here if needed:
+            # helpers.get_etfs_yields(db.session)
+            # helpers.get_portfolio_returns(db.session)
+            # helpers.get_portfolios_results(db.session)
+            
+            logging.info("Background update job completed successfully.")
+        except Exception as e:
+            logging.error('An error occurred in update_job(): %s', e, exc_info=True)
+            helpers.update_error_email(e)
+
+def start_scheduler():
+    if not scheduler.running:
+        # Run on the 10th of every month at 04:00 AM
+        scheduler.add_job(
+            func=update_job, 
+            trigger=CronTrigger(day='10', hour='4'), 
+            misfire_grace_time=3600
+        )
+        scheduler.start()
+        logging.info("Scheduler started.")
+
+# ── FastAPI App Setup ──────────────────────────────────────────────────────
+app = FastAPI(title="ZenETFs API")
+
+# Mount static files
 static_dir = os.path.join(BASE_DIR, "static")
 if os.path.isdir(static_dir):
     app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -24,14 +88,23 @@ if os.path.isdir(static_dir):
 templates_dir = os.path.join(BASE_DIR, "templates")
 templates = Jinja2Templates(directory=templates_dir)
 
-
-# ── Startup ──────────────────────────────────────────────────────────────────
-
+# ── FastAPI Lifecycle ──────────────────────────────────────────────────────
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
+    # Verify DB connectivity
     with flask_app.app_context():
         db.engine.connect()
-        print("Database connected successfully using Flask context.")
+        logging.info("Database connected successfully using Flask context.")
+    
+    # Start scheduler
+    # In multi-worker prod environments, ensure this only runs once or use a separate worker.
+    start_scheduler()
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    if scheduler.state == STATE_RUNNING:
+        scheduler.shutdown()
+        logging.info("Scheduler shut down.")
 
 
 # ── Language Detection: Triple Check ─────────────────────────────────────────
@@ -39,30 +112,24 @@ def startup_event():
 async def detect_language(request: Request) -> str:
     """
     Determines the preferred language using a three-step cascade:
-    1. Cookie `lang`          — user's explicit past choice (fastest)
-    2. Accept-Language header — browser preference (free, accurate)
-    3. IP geolocation         — fallback via ip-api.com (only when needed)
-    Returns 'pl' or 'en'.
+    1. Cookie `lang`          — user's explicit past choice
+    2. Accept-Language header — browser preference
+    3. IP geolocation         — fallback via ip-api.com
     """
-    # 1. Cookie takes highest priority
     lang_cookie = request.cookies.get("lang")
     if lang_cookie in ("pl", "en"):
         return lang_cookie
 
-    # 2. Accept-Language header
     accept_lang = request.headers.get("Accept-Language", "")
     if accept_lang:
         primary = accept_lang.split(",")[0].split(";")[0].strip().lower()
         if primary.startswith("pl"):
             return "pl"
-        # Any non-Polish explicit preference → English
         if primary and not primary.startswith("*"):
             return "en"
 
-    # 3. IP geolocation fallback
     try:
         client_ip = request.client.host
-        # Skip geolocation for local/private IPs
         if not client_ip or client_ip in ("127.0.0.1", "::1"):
             return "en"
         async with httpx.AsyncClient(timeout=2.0) as client:
@@ -72,17 +139,12 @@ async def detect_language(request: Request) -> str:
                 if country == "PL":
                     return "pl"
     except Exception:
-        pass  # Silently fall back to English
+        pass
 
     return "en"
 
-
 @app.middleware("http")
 async def language_cookie_middleware(request: Request, call_next):
-    """
-    Global middleware to ensure the 'lang' cookie is set immediately 
-    when the user navigates to a language-specific route (/pl/ or /en/).
-    """
     path = request.url.path
     lang_from_path = None
     if path.startswith("/pl"):
@@ -97,9 +159,7 @@ async def language_cookie_middleware(request: Request, call_next):
     
     return response
 
-
 def set_lang_cookie(response: Response, lang: str) -> None:
-    # Always set path="/" so the cookie is available across the whole site
     response.set_cookie(
         "lang", 
         lang, 
@@ -108,8 +168,7 @@ def set_lang_cookie(response: Response, lang: str) -> None:
         samesite="lax"
     )
 
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
+# ── Business Logic Helpers ──────────────────────────────────────────────────
 
 def get_portfolio_data() -> list:
     with flask_app.app_context():
@@ -131,13 +190,10 @@ def get_portfolio_data() -> list:
         finally:
             session.close()
 
-
 def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
-    """Build a common template context dict."""
     return {"request": request, "lang": lang, "active_page": active_page, **extra}
 
-
-# ── Root redirect ─────────────────────────────────────────────────────────────
+# ── Routes ──────────────────────────────────────────────────────────────────
 
 @app.get("/", response_class=RedirectResponse)
 async def root(request: Request):
@@ -146,70 +202,46 @@ async def root(request: Request):
     set_lang_cookie(response, lang)
     return response
 
-
-# ── Polish routes (/pl/) ──────────────────────────────────────────────────────
-
+# Polish routes
 @app.get("/pl/", response_class=HTMLResponse)
 async def pl_index(request: Request):
-    return templates.TemplateResponse(
-        request, "pl/index.html", ctx(request, "pl", "index")
-    )
-
+    return templates.TemplateResponse(request, "pl/index.html", ctx(request, "pl", "index"))
 
 @app.get("/pl/portfolios", response_class=HTMLResponse)
 async def pl_portfolios(request: Request):
-    return templates.TemplateResponse(
-        request, "pl/portfolios.html", ctx(request, "pl", "portfolios")
-    )
-
+    return templates.TemplateResponse(request, "pl/portfolios.html", ctx(request, "pl", "portfolios"))
 
 @app.get("/pl/etfs", response_class=HTMLResponse)
 async def pl_etfs(request: Request):
-    return templates.TemplateResponse(
-        request, "pl/etfs.html", ctx(request, "pl", "etfs")
-    )
-
+    return templates.TemplateResponse(request, "pl/etfs.html", ctx(request, "pl", "etfs"))
 
 @app.get("/pl/about", response_class=HTMLResponse)
 async def pl_about(request: Request):
-    return templates.TemplateResponse(
-        request, "pl/about.html", ctx(request, "pl", "about")
-    )
+    return templates.TemplateResponse(request, "pl/about.html", ctx(request, "pl", "about"))
 
-
-# ── English routes (/en/) ─────────────────────────────────────────────────────
-
+# English routes
 @app.get("/en/", response_class=HTMLResponse)
 async def en_index(request: Request):
-    return templates.TemplateResponse(
-        request, "en/index.html", ctx(request, "en", "index")
-    )
-
+    return templates.TemplateResponse(request, "en/index.html", ctx(request, "en", "index"))
 
 @app.get("/en/portfolios", response_class=HTMLResponse)
 async def en_portfolios(request: Request):
-    return templates.TemplateResponse(
-        request, "en/portfolios.html", ctx(request, "en", "portfolios")
-    )
-
+    return templates.TemplateResponse(request, "en/portfolios.html", ctx(request, "en", "portfolios"))
 
 @app.get("/en/etfs", response_class=HTMLResponse)
 async def en_etfs(request: Request):
-    return templates.TemplateResponse(
-        request, "en/etfs.html", ctx(request, "en", "etfs")
-    )
-
+    return templates.TemplateResponse(request, "en/etfs.html", ctx(request, "en", "etfs"))
 
 @app.get("/en/about", response_class=HTMLResponse)
 async def en_about(request: Request):
-    return templates.TemplateResponse(
-        request, "en/about.html", ctx(request, "en", "about")
-    )
+    return templates.TemplateResponse(request, "en/about.html", ctx(request, "en", "about"))
 
-
-# ── API ───────────────────────────────────────────────────────────────────────
-
+# API
 @app.get("/api/data")
 def get_data():
-    """Return portfolio data as JSON for the comparison table."""
     return get_portfolio_data()
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5000)
+

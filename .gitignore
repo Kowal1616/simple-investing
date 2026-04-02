@@ -7,3 +7,4 @@ instance/
 financial_data.db
 *.db
 .vscode/
+get-docker.sh
