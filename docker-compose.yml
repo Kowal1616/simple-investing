@@ -6,6 +6,6 @@ services:
     env_file:
       - .env
     volumes:
-      - .:/app
-      - ./financial_data_v2.db:/app/financial_data_v2.db
+      # Only mount the instance folder for the SQLite database
+      - ./instance:/app/instance
     restart: unless-stopped

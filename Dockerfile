@@ -15,4 +15,5 @@ RUN pip install --no-cache-dir setuptools && pip install --no-cache-dir -r requi
 
 COPY . .
 
-CMD ["python", "app.py"]
+# Production entry point: using Gunicorn with Uvicorn workers
+CMD ["gunicorn", "-c", "gunicorn_conf.py", "main:app"]
