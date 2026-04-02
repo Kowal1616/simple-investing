@@ -1,24 +1,14 @@
 import os
-from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
-import yfinance as yf
-import requests
 import pandas as pd
-from io import StringIO
 import datetime
 import inspect
 from models import *
 import logging
+from data_providers import FinancialDataService
+from notifications import SystemNotifier
 
-
-# Use SendGrid api_key that is stored as environment variable
-sendgrid_api_key = os.getenv('SENDGRID_API_KEY')
-
-# Use admin email that is stored as environment variable
+# Load admin email from environment
 admin_email = os.getenv('ADMIN_EMAIL')
-
-# Use AlphaVantage api_key that is stored as environment variable
-alphavantage_api_key = os.getenv('ALPHAVANTAGE_API_KEY')
 
 
 def get_etfs_data(session):
@@ -38,53 +28,34 @@ def get_etfs_data(session):
 
         elif not check_date.date == csv_date:
 
-            # Retrive both tickers from the db
-            result = session.query(Etfs.id, Etfs.yfinance_name, Etfs.alphavantage_name).all()
+            # Retrive tickers from the db
+            result = session.query(Etfs.id, Etfs.yfinance_name).all()
 
             # Initialize lists to store data and failed retrieval tickers
             etfs_prices = [csv_date]
-            failed_retrieval_etfs = ['Data retrival failed for:']
+            failed_retrieval_etfs = []
+            
+            data_service = FinancialDataService()
 
             # Iterate through tickers and retrieve data
-            for id, ticker_yf, ticker_av in result:
-                av_price, yf_price = 0, 0
-                try:
-                    # Retrieve data using AlphaVantage API
-                    av_price = round(data_retrival_av(ticker_av), 2)
-                    if av_price == 0:
-                        av_price = None
+            for id, ticker_yf in result:
+                final_price = data_service.get_consensus_price(ticker_yf)
 
-                except Exception as e:
-                    # Handle AlphaVantage API errors
-                    failed_retrieval_etfs.append(f"AV - {ticker_av} ({e})")
-                try:
-                    # Retrieve data using Yahoo Finance
-                    yf_price = round(data_retrival_yf(ticker_yf, today), 2)
-                    if yf_price == 0:
-                        yf_price = None
-
-                except Exception as e:
-                    # Handle Yahoo Finance errors
-                    failed_retrieval_etfs.append(f"YF - {ticker_yf} ({e})")
-
-                # Compute final value using both sources if available
-                if av_price is not None and av_price != 0 and yf_price is not None and yf_price != 0:
-                    final_price = round((av_price + yf_price) / 2, 2)
+                if final_price is not None:
                     etfs_prices.append(final_price)
-                elif av_price is not None and av_price != 0:
-                    etfs_prices.append(av_price)
-                elif yf_price is not None and yf_price != 0:
-                    etfs_prices.append(yf_price)
                 else:
                     # Both methods failed, temporarily add last month price (so the user see that db is 'up to date')
                     column_name = f"etf{id}_price"
                     last_month_price = session.query(getattr(HistoricalDataEtfs, column_name)).order_by(HistoricalDataEtfs.id.desc()).first()
-                    etfs_prices.append(last_month_price)
-                    print(f'\n#*#*#*#* DATA RETRIVAL FAILED FOR: *#*#*#*#\n{ticker_yf} / {ticker_av}\n#*#*#*#* LAST ADDED FOR TEMP FIX #*#*#*#*')
+                    # extract the value if it's a tuple wrapper, otherwise 0
+                    fallback_price = last_month_price[0] if last_month_price and last_month_price[0] else 0.0
+                    etfs_prices.append(fallback_price)
+                    failed_retrieval_etfs.append(ticker_yf)
+                    print(f'\n#*#*#*#* DATA RETRIVAL FAILED FOR: *#*#*#*#\n{ticker_yf}\n#*#*#*#* LAST ADDED FOR TEMP FIX #*#*#*#*')
 
             # Send email if db update error occurred
             if failed_retrieval_etfs:
-                update_error_email(failed_retrieval_etfs)
+                update_error_email(f"Data retrieval failed for: {failed_retrieval_etfs}")
 
             return etfs_prices
 
@@ -377,64 +348,14 @@ def update_portfolios_drawdown(portfolios_drawdown, session):
         update_error_email(e)
 
 
-def send_email(title, email_content):
-    """ Send e-mails via SendGrid """
-    message = Mail(
-        from_email='error@simple-investing.com',
-        to_emails=admin_email,
-        subject='{}'.format(title),
-        html_content='{}'.format(email_content))
-    try:
-        sendgrid_client = SendGridAPIClient(sendgrid_api_key)
-        response = sendgrid_client.send(message)
-        print(response.status_code)
-    except Exception as e:
-        function_name = inspect.currentframe().f_code.co_name
-        logging.error(f'An error occurred in {function_name}: %s', e, exc_info=True)
-        return False
-
-    return True
-
-
 def update_error_email(e):
-    # Handle any errors that occurred
+    """Log the error and send an alert email to the administrator."""
     print(f"An error occurred: {e}")
-    # Send email notification to admin
-    title = 'SimpleInvesting - Database Update Error in your app'
-    function_name = inspect.currentframe().f_code.co_name
-    message = (f'<strong>The {function_name} script failed to Update data. An error occured: {e}.</strong>')
-    send_email(title, message)
+    logging.error('Application error: %s', e)
+    notifier = SystemNotifier()
+    notifier.send_error_alert(
+        f'SimpleInvesting database update failed. Error: {e}'
+    )
 
 
-def data_retrival_yf(ticker_yf, today):
-    # Retrieve data using Yahoo Finance (last row is the latest data)
-    # Get the last day of the previous month
-    last_day_of_previous_month = today.replace(day=1) - datetime.timedelta(days=1)
-
-    # Get the first day of the previous month
-    first_day_of_previous_month = last_day_of_previous_month.replace(day=1)
-
-    # Fetch historical price data using yfinance for the previous month
-    etf_prices_df = yf.download(ticker_yf, start=first_day_of_previous_month, end=last_day_of_previous_month)
-
-    # Extract the adjusted close price for the last day of the previous month
-    yf_price = etf_prices_df['Adj Close'].iloc[-1]
-
-    return yf_price
-
-
-def data_retrival_av(ticker_av):
-    ''' Retrieve data using AlphaVantage API (second row is last month adjusted close data) '''
-    url = 'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED&symbol={}&apikey={}&datatype=csv'.format(
-        ticker_av, alphavantage_api_key)
-    response = requests.get(url)
-
-    # Check if the request was successful
-    response.raise_for_status()
-
-    # Process AlphaVantage data
-    etf_prices_df = pd.read_csv(StringIO(response.text))
-    av_price = (etf_prices_df['adjusted close'].iloc[1])
-
-    return av_price
 

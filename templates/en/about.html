@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block meta_description %}ZenETFs — About the project. Educational tool comparing long-term historical returns of passive portfolio strategies for European market.{% endblock %}
+{% block title %}About{% endblock %}
+
+{% block main %}
+<div class="page-hero">
+  <div class="section-label">Philosophy</div>
+  <h1>About ZenETFs</h1>
+  <p>Discover a tool created with European passive investors in mind, valuing a long horizon and low costs.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  
+  <div class="about-grid" style="margin-bottom: 40px;">
+    <!-- Mission -->
+    <div class="about-card">
+      <div class="about-card-icon"><i data-lucide="target" style="width:28px;height:28px;"></i></div>
+      <h3>Our Mission</h3>
+      <p>ZenETFs promotes low-cost, low-maintenance, long-term investing inspired by the Boggleheads philosophy. At its core, the app features a dynamic table showcasing the long-term returns of various portfolios powered by historical data dating back 30 years.</p>
+    </div>
+
+    <!-- Origins -->
+    <div class="about-card">
+      <div class="about-card-icon"><i data-lucide="code" style="width:28px;height:28px;"></i></div>
+      <h3>Origins</h3>
+      <p>Initially named "Simple Investing", this tool was created as the final project for the legendary CS50 course. It transformed into ZenETFs, evolving both in its underlying technology (migrating from Flask to FastAPI) and its advanced user-centric design.</p>
+    </div>
+  </div>
+
+  <h2 class="section-heading" style="margin-top:20px;">Process Explained</h2>
+  <div class="about-grid" style="margin-bottom: 40px;">
+    <div class="about-card" style="grid-column: 1 / -1; padding: 40px;">
+      
+      <div class="process-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Data Fetching</h4>
+            <p>Once a month we fetch ETF prices from reliable sources to ensure accuracy. For a true "buy and hold" passive perspective, month-to-month changes are more than adequate to track long-term performance.</p>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Historical Insights</h4>
+            <p>The monthly data enriches our robust database which houses merged and reconstructed index data spanning 30 years—even from before modern ETFs were established.</p>
+          </div>
+        </div>
+        
+        <div class="step" style="padding-bottom:0;">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Calculations</h4>
+            <p>Using the <a href="https://www.investopedia.com/terms/c/cagr.asp" target="_blank" rel="noopener" style="color:var(--green);text-decoration:none;font-weight:600;">Compound Annual Growth Rate (CAGR)</a> over 5, 10, 20, and 30-year periods, the application displays precise, smoothed-out performance metrics tailored for each strategy directly on the dashboard.</p>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strategos — Design Prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0D1B2A;
+      --surface:      #1A2B3C;
+      --surface-2:    #1f3347;
+      --border:       #243447;
+      --green:        #00C896;
+      --green-dim:    rgba(0, 200, 150, 0.12);
+      --green-glow:   rgba(0, 200, 150, 0.35);
+      --blue:         #4A90E2;
+      --text:         #F0F4F8;
+      --text-muted:   #8B9BAB;
+      --radius:       12px;
+      --radius-sm:    8px;
+      --transition:   0.2s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── PROTOTYPE BANNER ─────────────────────── */
+    .proto-banner {
+      background: linear-gradient(90deg, #7c3aed, #4A90E2);
+      color: #fff;
+      text-align: center;
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    /* ── NAVBAR ───────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(13, 27, 42, 0.85);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .nav-logo {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--green), #00a87a);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .nav-logo svg { width: 20px; height: 20px; }
+
+    .nav-brand-name {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color var(--transition);
+      padding-bottom: 4px;
+      border-bottom: 2px solid transparent;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--text);
+      border-bottom-color: var(--green);
+    }
+
+    /* ── PAGE TABS (demo) ─────────────────────── */
+    .page-tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      padding: 20px 40px 0;
+      flex-wrap: wrap;
+    }
+
+    .tab-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .tab-btn.active,
+    .tab-btn:hover {
+      background: var(--green-dim);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* ── PAGES ────────────────────────────────── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ── HERO ─────────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 90px 40px 70px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle at 50% 40%, rgba(0,200,150,0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    /* dot grid */
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .hero-content { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-dim);
+      border: 1px solid rgba(0,200,150,0.3);
+      color: var(--green);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 5vw, 58px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--green), #00e0aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 540px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+
+    .hero-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-primary {
+      background: var(--green);
+      color: #0D1B2A;
+      font-weight: 700;
+      font-size: 15px;
+      padding: 13px 28px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all var(--transition);
+      box-shadow: 0 0 24px var(--green-glow);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary:hover {
+      background: #00dea8;
+      box-shadow: 0 0 36px var(--green-glow);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 15px;
+      padding: 13px 28px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      color: var(--text);
+    }
+
+    /* ── STATS BAR ────────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 40px 60px;
+    }
+
+    .stat-card {
+      background: rgba(26, 43, 60, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-align: center;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: rgba(0, 200, 150, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .stat-icon { font-size: 22px; margin-bottom: 8px; }
+
+    .stat-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── SECTION ──────────────────────────────── */
+    .section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+
+    .section-heading {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 28px;
+    }
+
+    /* ── TABLE ────────────────────────────────── */
+    .table-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .data-table thead {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table th {
+      padding: 14px 18px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      white-space: nowrap;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .data-table th:not(:first-child) { text-align: center; }
+    .data-table th:hover { color: var(--text); }
+
+    .data-table th .sort-icon {
+      display: inline-block;
+      margin-left: 4px;
+      opacity: 0.4;
+      font-size: 10px;
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    .data-table tbody tr:last-child { border-bottom: none; }
+    .data-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+
+    .data-table td {
+      padding: 16px 18px;
+      vertical-align: middle;
+    }
+
+    .data-table td:not(:first-child) { text-align: center; }
+
+    .portfolio-name {
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .portfolio-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .portfolio-assets {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      font-weight: 400;
+    }
+
+    .cagr-badge {
+      display: inline-block;
+      background: var(--green-dim);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-variant-numeric: tabular-nums;
+      border: 1px solid rgba(0,200,150,0.2);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── PORTFOLIO CARDS ──────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .portfolio-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color var(--transition), transform var(--transition);
+      cursor: pointer;
+    }
+
+    .portfolio-card:hover {
+      border-color: rgba(0,200,150,0.4);
+      transform: translateY(-3px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+    }
+
+    .card-title { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+    .card-subtitle { font-size: 12px; color: var(--text-muted); }
+
+    .card-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric-item { background: rgba(255,255,255,0.03); border-radius: 8px; padding: 10px; }
+    .metric-period { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 3px; }
+    .metric-val { font-size: 18px; font-weight: 700; color: var(--green); letter-spacing: -0.01em; }
+
+    .card-composition {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .asset-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(74, 144, 226, 0.12);
+      color: var(--blue);
+      border: 1px solid rgba(74, 144, 226, 0.2);
+      font-weight: 500;
+    }
+
+    .card-link {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ── ETF TABLE PAGE ───────────────────────── */
+    .type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+    .type-acc {
+      background: rgba(0,200,150,0.12);
+      color: var(--green);
+      border: 1px solid rgba(0,200,150,0.25);
+    }
+    .type-dist {
+      background: rgba(74,144,226,0.12);
+      color: var(--blue);
+      border: 1px solid rgba(74,144,226,0.25);
+    }
+
+    /* ── ABOUT PAGE ───────────────────────────── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .about-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .about-card-icon { font-size: 28px; margin-bottom: 12px; }
+    .about-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+    .about-card p { font-size: 14px; color: var(--text-muted); line-height: 1.7; }
+
+    .process-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin-top: 40px;
+    }
+
+    .step {
+      display: flex;
+      gap: 20px;
+      padding-bottom: 28px;
+      position: relative;
+    }
+
+    .step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .step-num {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--green-dim);
+      border: 2px solid var(--green);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .step-content h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .step-content p { font-size: 13px; color: var(--text-muted); }
+
+    /* ── FOOTER ───────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 40px;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-disclaimer {
+      font-size: 12px;
+      color: var(--text-muted);
+      max-width: 600px;
+      line-height: 1.6;
+    }
+
+    .footer-brand {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    /* ── RESPONSIVE ───────────────────────────── */
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .hero { padding: 60px 20px 40px; }
+      .stats-bar { grid-template-columns: 1fr 1fr; padding: 0 20px 40px; }
+      .section { padding: 0 20px 60px; }
+      .about-grid { grid-template-columns: 1fr; }
+      .page-tabs { padding: 16px 20px 0; }
+      footer { padding: 24px 20px; flex-direction: column; }
+    }
+
+    @media (max-width: 480px) {
+      .stats-bar { grid-template-columns: 1fr; }
+      .hero-actions { flex-direction: column; align-items: center; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Prototype banner -->
+  <div class="proto-banner">
+    🎨 DESIGN PROTOTYPE — Tylko podgląd wizualny, brak zmian w kodzie projektu
+  </div>
+
+  <!-- Navbar -->
+  <nav>
+    <a href="#" class="nav-brand" onclick="showPage('home')">
+      <div class="nav-logo">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="13" width="3" height="5" rx="1" fill="#0D1B2A"/>
+          <rect x="7" y="9" width="3" height="9" rx="1" fill="#0D1B2A"/>
+          <rect x="12" y="5" width="3" height="13" rx="1" fill="#0D1B2A"/>
+          <path d="M3 10 L8 6 L13 3 L18 1" stroke="#0D1B2A" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="18" cy="1" r="1.5" fill="#0D1B2A"/>
+        </svg>
+      </div>
+      <span class="nav-brand-name">Strategos</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#" id="nav-home" class="active" onclick="showPage('home'); setActive(this)">Narzędzie</a></li>
+      <li><a href="#" id="nav-portfolios" onclick="showPage('portfolios'); setActive(this)">Portfele</a></li>
+      <li><a href="#" id="nav-etfs" onclick="showPage('etfs'); setActive(this)">ETFy</a></li>
+      <li><a href="#" id="nav-about" onclick="showPage('about'); setActive(this)">O nas</a></li>
+    </ul>
+  </nav>
+
+  <!-- Page switcher -->
+  <div class="page-tabs">
+    <button class="tab-btn active" onclick="showPage('home'); setTabActive(this)">🏠 Strona główna</button>
+    <button class="tab-btn" onclick="showPage('portfolios'); setTabActive(this)">📁 Portfele</button>
+    <button class="tab-btn" onclick="showPage('etfs'); setTabActive(this)">📊 ETFy</button>
+    <button class="tab-btn" onclick="showPage('about'); setTabActive(this)">ℹ️ O nas</button>
+  </div>
+
+  <!-- ═══════════ PAGE: HOME ═══════════ -->
+  <div id="page-home" class="page active">
+
+    <section class="hero">
+      <div class="hero-content">
+        <div class="hero-badge">🇪🇺 dla europejskich inwestorów</div>
+        <h1>Porównaj <span class="highlight">strategie</span><br>inwestycyjne</h1>
+        <p>Długoterminowe portfele oparte na ETF UCITS. Dane historyczne sięgające 30 lat wstecz, aktualizowane co miesiąc.</p>
+        <div class="hero-actions">
+          <a href="#comparison" class="btn-primary">→ Przejdź do porównywarki</a>
+          <a href="#" class="btn-secondary" onclick="showPage('portfolios'); setTabActive(document.querySelectorAll('.tab-btn')[1])">📁 Przeglądaj portfele</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="stats-bar">
+      <div class="stat-card">
+        <div class="stat-icon">📅</div>
+        <div class="stat-value">30</div>
+        <div class="stat-label">lat danych</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📁</div>
+        <div class="stat-value">6</div>
+        <div class="stat-label">portfeli</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📈</div>
+        <div class="stat-value">CAGR</div>
+        <div class="stat-label">metodologia</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🔄</div>
+        <div class="stat-value">1× mies.</div>
+        <div class="stat-label">aktualizacja</div>
+      </div>
+    </div>
+
+    <section class="section" id="comparison">
+      <div class="section-title">Narzędzie porównawcze</div>
+      <div class="section-heading">Roczne stopy zwrotu (CAGR)</div>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Portfel <span class="sort-icon">↕</span></th>
+              <th>Aktywa <span class="sort-icon">↕</span></th>
+              <th>5 lat <span class="sort-icon">↕</span></th>
+              <th>10 lat <span class="sort-icon">↕</span></th>
+              <th>20 lat <span class="sort-icon">↕</span></th>
+              <th>30 lat <span class="sort-icon">↕</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="portfolio-name">
+                  <div class="portfolio-dot" style="background:#4A90E2"></div>
+                  <div>USA (S&amp;P 500)<div class="portfolio-assets">1 ETF</div></div>
+                </div>
+              </td>
+              <td>1</td>
+              <td><span class="cagr-badge">12,68%</span></td>
+              <td><span class="cagr-badge">13,93%</span></td>
+              <td><span class="cagr-badge">9,60%</span></td>
+              <td><span class="cagr-badge">8,80%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="portfolio-name">
+                  <div class="portfolio-dot" style="background:#a78bfa"></div>
+                  <div>Globalna Technologia<div class="portfolio-assets">1 ETF</div></div>
+                </div>
+              </td>
+              <td>1</td>
+              <td><span class="cagr-badge">16,10%</span></td>
+              <td><span class="cagr-badge">21,51%</span></td>
+              <td><span class="cagr-badge">22,69%</span></td>
+              <td><span class="cagr-badge">23,09%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="portfolio-name">
+                  <div class="portfolio-dot" style="background:#00C896"></div>
+                  <div>Cały Świat<div class="portfolio-assets">1 ETF</div></div>
+                </div>
+              </td>
+              <td>1</td>
+              <td><span class="cagr-badge">10,95%</span></td>
+              <td><span class="cagr-badge">11,66%</span></td>
+              <td><span class="cagr-badge">6,66%</span></td>
+              <td><span class="cagr-badge">6,85%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="portfolio-name">
+                  <div class="portfolio-dot" style="background:#f59e0b"></div>
+                  <div>80-20 Akcje–Obligacje<div class="portfolio-assets">2 ETF</div></div>
+                </div>
+              </td>
+              <td>2</td>
+              <td><span class="cagr-badge">10,51%</span></td>
+              <td><span class="cagr-badge">10,87%</span></td>
+              <td><span class="cagr-badge">8,09%</span></td>
+              <td><span class="cagr-badge">7,58%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="portfolio-name">
+                  <div class="portfolio-dot" style="background:#f97316"></div>
+                  <div>60-40 Akcje–Obligacje<div class="portfolio-assets">2 ETF</div></div>
+                </div>
+              </td>
+              <td>2</td>
+              <td><span class="cagr-badge">9,26%</span></td>
+              <td><span class="cagr-badge">9,41%</span></td>
+              <td><span class="cagr-badge">7,35%</span></td>
+              <td><span class="cagr-badge">6,87%</span></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="portfolio-name">
+                  <div class="portfolio-dot" style="background:#fbbf24"></div>
+                  <div>Złoto<div class="portfolio-assets">1 ETF</div></div>
+                </div>
+              </td>
+              <td>1</td>
+              <td><span class="cagr-badge">24,97%</span></td>
+              <td><span class="cagr-badge">15,09%</span></td>
+              <td><span class="cagr-badge">12,47%</span></td>
+              <td><span class="cagr-badge">9,54%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p style="font-size:12px; color:var(--text-muted); margin-top:12px;">
+        * Dane oparte o historyczne ceny ETF UCITS na rynkach europejskich. CAGR = Compound Annual Growth Rate (Roczna Skumulowana Stopa Wzrostu). Wyniki historyczne nie są gwarancją przyszłych zysków.
+      </p>
+    </section>
+
+  </div><!-- /page-home -->
+
+  <!-- ═══════════ PAGE: PORTFOLIOS ═══════════ -->
+  <div id="page-portfolios" class="page">
+    <div style="padding: 50px 40px 20px;">
+      <div style="max-width:1100px; margin:0 auto;">
+        <div class="section-title">Strategie inwestycyjne</div>
+        <h1 style="font-size:36px; font-weight:800; letter-spacing:-0.02em; margin-bottom:12px;">Portfele ETF</h1>
+        <p style="color:var(--text-muted); max-width:560px; margin-bottom:40px;">
+          Portfele wybrane według zasad pasywnego inwestowania — minimalna liczba aktywów, niskie koszty, fundusze akumulujące.
+        </p>
+      </div>
+    </div>
+
+    <div class="section" style="padding-top:0;">
+      <div class="cards-grid">
+
+        <div class="portfolio-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">USA (S&P 500)</div>
+              <div class="card-subtitle">Rynek amerykański</div>
+            </div>
+            <div class="card-icon" style="background:rgba(74,144,226,0.12);">🇺🇸</div>
+          </div>
+          <div class="card-metrics">
+            <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">12,68%</div></div>
+            <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">13,93%</div></div>
+            <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">9,60%</div></div>
+            <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">8,80%</div></div>
+          </div>
+          <div class="card-composition">
+            <span class="asset-tag">iShares Core S&P 500 UCITS</span>
+          </div>
+          <a href="#" class="card-link">Szczegóły portfela →</a>
+        </div>
+
+        <div class="portfolio-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Globalna Technologia</div>
+              <div class="card-subtitle">Sektor technologiczny</div>
+            </div>
+            <div class="card-icon" style="background:rgba(167,139,250,0.12);">💻</div>
+          </div>
+          <div class="card-metrics">
+            <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">16,10%</div></div>
+            <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">21,51%</div></div>
+            <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">22,69%</div></div>
+            <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">23,09%</div></div>
+          </div>
+          <div class="card-composition">
+            <span class="asset-tag">Xtrackers MSCI World IT UCITS</span>
+          </div>
+          <a href="#" class="card-link">Szczegóły portfela →</a>
+        </div>
+
+        <div class="portfolio-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Cały Świat</div>
+              <div class="card-subtitle">Globalna dywersyfikacja</div>
+            </div>
+            <div class="card-icon" style="background:rgba(0,200,150,0.12);">🌍</div>
+          </div>
+          <div class="card-metrics">
+            <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">10,95%</div></div>
+            <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">11,66%</div></div>
+            <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">6,66%</div></div>
+            <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">6,85%</div></div>
+          </div>
+          <div class="card-composition">
+            <span class="asset-tag">iShares MSCI ACWI UCITS</span>
+          </div>
+          <a href="#" class="card-link">Szczegóły portfela →</a>
+        </div>
+
+        <div class="portfolio-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">80-20 Akcje–Obligacje</div>
+              <div class="card-subtitle">Zrównoważony wzrost</div>
+            </div>
+            <div class="card-icon" style="background:rgba(245,158,11,0.12);">⚖️</div>
+          </div>
+          <div class="card-metrics">
+            <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">10,51%</div></div>
+            <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">10,87%</div></div>
+            <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">8,09%</div></div>
+            <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">7,58%</div></div>
+          </div>
+          <div class="card-composition">
+            <span class="asset-tag">iShares Core MSCI World</span>
+            <span class="asset-tag">SPDR HY Bond</span>
+          </div>
+          <a href="#" class="card-link">Szczegóły portfela →</a>
+        </div>
+
+        <div class="portfolio-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">60-40 Akcje–Obligacje</div>
+              <div class="card-subtitle">Niższa zmienność</div>
+            </div>
+            <div class="card-icon" style="background:rgba(249,115,22,0.12);">🛡️</div>
+          </div>
+          <div class="card-metrics">
+            <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">9,26%</div></div>
+            <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">9,41%</div></div>
+            <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">7,35%</div></div>
+            <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">6,87%</div></div>
+          </div>
+          <div class="card-composition">
+            <span class="asset-tag">iShares Core MSCI World</span>
+            <span class="asset-tag">SPDR HY Bond</span>
+          </div>
+          <a href="#" class="card-link">Szczegóły portfela →</a>
+        </div>
+
+        <div class="portfolio-card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Złoto</div>
+              <div class="card-subtitle">Zabezpieczenie wartości</div>
+            </div>
+            <div class="card-icon" style="background:rgba(251,191,36,0.12);">🥇</div>
+          </div>
+          <div class="card-metrics">
+            <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">24,97%</div></div>
+            <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">15,09%</div></div>
+            <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">12,47%</div></div>
+            <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">9,54%</div></div>
+          </div>
+          <div class="card-composition">
+            <span class="asset-tag">Xetra Gold ETC</span>
+          </div>
+          <a href="#" class="card-link">Szczegóły portfela →</a>
+        </div>
+
+      </div>
+    </div>
+  </div><!-- /page-portfolios -->
+
+  <!-- ═══════════ PAGE: ETFs ═══════════ -->
+  <div id="page-etfs" class="page">
+    <div style="padding: 50px 40px 20px;">
+      <div style="max-width:1100px; margin:0 auto;">
+        <div class="section-title">Instrumenty bazowe</div>
+        <h1 style="font-size:36px; font-weight:800; letter-spacing:-0.02em; margin-bottom:12px;">ETFy UCITS</h1>
+        <p style="color:var(--text-muted); max-width:600px; margin-bottom:40px;">
+          Kliknij nazwę ETF aby przejść do strony funduszu (zewnętrzny serwis AT). 
+          Strategos nie jest powiązany z AT i nie otrzymuje prowizji za odesłania.
+        </p>
+      </div>
+    </div>
+
+    <div class="section" style="padding-top:0;">
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ETF <span class="sort-icon">↕</span></th>
+              <th>Ticker <span class="sort-icon">↕</span></th>
+              <th>TER <span class="sort-icon">↕</span></th>
+              <th>Typ <span class="sort-icon">↕</span></th>
+              <th>Domicyl <span class="sort-icon">↕</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="font-weight:600;"><a href="#" style="color:var(--blue); text-decoration:none;">iShares Core S&P 500 UCITS Accumulating</a></td>
+              <td><code style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px;">SXR8</code></td>
+              <td>0,07%</td>
+              <td><span class="type-badge type-acc">Akumulujący</span></td>
+              <td>🇮🇪 Irlandia</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;"><a href="#" style="color:var(--blue); text-decoration:none;">Xtrackers MSCI World IT UCITS Accumulating</a></td>
+              <td><code style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px;">XDWT</code></td>
+              <td>0,25%</td>
+              <td><span class="type-badge type-acc">Akumulujący</span></td>
+              <td>🇮🇪 Irlandia</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;"><a href="#" style="color:var(--blue); text-decoration:none;">iShares MSCI ACWI UCITS Accumulating</a></td>
+              <td><code style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px;">IUSQ</code></td>
+              <td>0,20%</td>
+              <td><span class="type-badge type-acc">Akumulujący</span></td>
+              <td>🇮🇪 Irlandia</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;"><a href="#" style="color:var(--blue); text-decoration:none;">iShares Core MSCI World UCITS Accumulating</a></td>
+              <td><code style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px;">EUNL</code></td>
+              <td>0,20%</td>
+              <td><span class="type-badge type-acc">Akumulujący</span></td>
+              <td>🇮🇪 Irlandia</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;"><a href="#" style="color:var(--blue); text-decoration:none;">SPDR Bloomberg Euro High Yield Bond UCITS Distributing</a></td>
+              <td><code style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px;">SYBU</code></td>
+              <td>0,40%</td>
+              <td><span class="type-badge type-dist">Wypłacający</span></td>
+              <td>🇮🇪 Irlandia</td>
+            </tr>
+            <tr>
+              <td style="font-weight:600;">
+                <a href="#" style="color:var(--blue); text-decoration:none;">Xetra Gold Accumulating*</a>
+              </td>
+              <td><code style="background:var(--surface-2); padding:2px 6px; border-radius:4px; font-size:13px;">4GLD</code></td>
+              <td>0%</td>
+              <td><span class="type-badge type-acc">Akumulujący</span></td>
+              <td>🇩🇪 Niemcy</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:12px; color:var(--text-muted); margin-top:12px;">
+        * Technicznie to ETC (Exchange-Traded Commodity) śledzący cenę surowca, nie ETF.
+      </p>
+    </div>
+  </div><!-- /page-etfs -->
+
+  <!-- ═══════════ PAGE: ABOUT ═══════════ -->
+  <div id="page-about" class="page">
+    <div style="padding: 50px 40px 20px;">
+      <div style="max-width:1100px; margin:0 auto;">
+        <div class="section-title">O projekcie</div>
+        <h1 style="font-size:36px; font-weight:800; letter-spacing:-0.02em; margin-bottom:12px;">O nas</h1>
+        <p style="color:var(--text-muted); max-width:620px; margin-bottom:40px;">
+          Strategos to narzędzie porównawcze dla europejskich inwestorów pasywnych, inspirowane filozofią Bogleheads. Projekt zaczął się od kursu CS50 i stale się rozwija.
+        </p>
+      </div>
+    </div>
+
+    <div class="section" style="padding-top:0;">
+      <div class="about-grid">
+        <div class="about-card">
+          <div class="about-card-icon">🎯</div>
+          <h3>Misja</h3>
+          <p>Ułatwienie dostępu do danych o długoterminowych strategiach ETF dla europejskich inwestorów. Promujemy podejście pasywne — mniej aktywów, niższe koszty, długi horyzont czasowy.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">📊</div>
+          <h3>Dane i metodologia</h3>
+          <p>Wyliczamy CAGR (Compound Annual Growth Rate) w oparciu o historyczne ceny ETF UCITS. Dane są agregowane z dwóch niezależnych źródeł. Krótka historia ETF jest uzupełniona danymi indeksowymi.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">🔄</div>
+          <h3>Aktualizacje</h3>
+          <p>Dane są aktualizowane co miesiąc — inwestowanie pasywne nie wymaga śledzenia rynku codziennie. Miesięczna częstotliwość eliminuje szum rynkowy i skupia na trendach długoterminowych.</p>
+        </div>
+        <div class="about-card">
+          <div class="about-card-icon">🛣️</div>
+          <h3>Plany rozwoju</h3>
+          <p>Profile inwestora i quiz dopasowujący portfel, sygnały GEM (Global Equity Momentum), nieruchomości w narzędziu porównawczym, profile użytkowników z alertami i raportami wyników.</p>
+        </div>
+      </div>
+
+      <div class="section-heading" style="margin-top:48px;">Jak to działa</div>
+      <div class="process-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Pobieranie danych</h4>
+            <p>Co miesiąc aplikacja pobiera ceny ETF z dwóch niezależnych źródeł i oblicza wartość konsensusową.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Obliczanie CAGR</h4>
+            <p>Na podstawie historycznych cen obliczamy roczne stopy zwrotu dla horyzontów 5, 10, 20 i 30 lat.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Wyniki portfeli</h4>
+            <p>CAGR poszczególnych ETF są ważone i agregowane do wyników portfeli wieloskładnikowych.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-content">
+            <h4>Prezentacja danych</h4>
+            <p>Przetworzone dane trafiają do bazy danych i są wyświetlane w tabeli porównawczej wraz z max drawdown.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /page-about -->
+
+  <!-- Footer -->
+  <footer>
+    <p class="footer-disclaimer">
+      ⚠️ Zastrzeżenie: Autor nie jest doradcą finansowym. Informacje na tej stronie mają wyłącznie charakter edukacyjny i nie stanowią porady inwestycyjnej. Wyniki historyczne nie są wskaźnikiem przyszłych zwrotów. Dane mogą być niedokładne lub zawierać błędy.
+    </p>
+    <div class="footer-brand">
+      Strategos &copy; 2025
+    </div>
+  </footer>
+
+  <script>
+    function showPage(name) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setActive(el) {
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function setTabActive(el) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      // sync nav
+      const map = { 0:'nav-home', 1:'nav-portfolios', 2:'nav-etfs', 3:'nav-about' };
+      const idx = Array.from(document.querySelectorAll('.tab-btn')).indexOf(el);
+      document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+      const navEl = document.getElementById(map[idx]);
+      if (navEl) navEl.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

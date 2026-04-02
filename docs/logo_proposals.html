@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ZenETFs — Ostateczne Propozycje Logo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #F8FAFC;
+      color: #0D1B2A;
+      margin: 0;
+      padding: 60px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+      max-width: 600px;
+    }
+    .header h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .header p {
+      color: #64748B;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .logo-container {
+      display: flex;
+      gap: 60px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1000px;
+    }
+    
+    .logo-card {
+      background: #FFF;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(13, 27, 42, 0.05);
+      padding: 50px;
+      text-align: center;
+      width: 380px;
+      border: 2px solid transparent;
+      transition: 0.3s ease;
+    }
+    
+    .logo-card:hover {
+      border-color: #00C896;
+      transform: translateY(-5px);
+    }
+    
+    .logo-title {
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #8B9BAB;
+      margin-bottom: 40px;
+    }
+    
+    /* Prawdziwe Logo SVG z tekstem */
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .brand-mark svg {
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+    }
+    
+    .brand-text {
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #0D1B2A;
+    }
+    
+    .tagline {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748B;
+      letter-spacing: 0.02em;
+      margin-top: -15px;
+      margin-bottom: 40px;
+    }
+    
+    .description {
+      font-size: 14px;
+      color: #475569;
+      line-height: 1.6;
+      text-align: left;
+      background: #F1F5F9;
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .color-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .dot {
+      width: 16px; height: 16px; border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Wybór docelowego Logo</h1>
+    <p>Ponieważ API do generacji obrazów rastrowych jest wyczerpane, przygotowałem dla Ciebie oba logotypy bezpośrednio jako czysty, skalowalny kod wektorowy (SVG). Mają nałożone docelowe, wyraziste kolory: Głęboki Granat i Szmaragdową Zieleń.</p>
+  </div>
+
+  <div class="logo-container">
+    
+    <!-- KONCEPT 1: ENSO GROWTH -->
+    <div class="logo-card">
+      <div class="logo-title">Opcja 1: Enso Growth</div>
+      
+      <div class="brand-mark">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Główny okrąg wejściowy (Granatowy) -->
+          <path d="M 80 50 A 30 30 0 1 1 50 20" stroke="#0D1B2A" stroke-width="8" stroke-linecap="round"/>
+          <!-- Ścieżka wzrostowa wychodząca z okręgu (Zielona) -->
+          <path d="M 50 20 A 30 30 0 0 1 73 29 L 85 15" stroke="#00C896" stroke-width="8" stroke-linecap="round"/>
+          <!-- Grot strzałki -->
+          <path d="M 65 15 L 85 15 L 85 35" stroke="#00C896" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="brand-text">ZenETFs</div>
+      </div>
+      <div class="tagline">Long term - No stress</div>
+      
+      <div class="description">
+        <strong>Symbolika:</strong> Tradycyjny okrąg Enso z przerwą, oznaczający otwartość na rozwój i nieskończoność. Przerwa płynnie przechodzi w strzałkę wzrostu.<br>
+        <strong>Klimat:</strong> Dynamiczny, nowoczesny, zorientowany na wyniki portfela.
+        <div class="color-dots">
+          <div class="dot" style="background:#0D1B2A"></div>
+          <div class="dot" style="background:#00C896"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KONCEPT 2: STACKED STONES -->
+    <div class="logo-card">
+      <div class="logo-title">Opcja 2: Stacked Stones</div>
+      
+      <div class="brand-mark">
+        <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Dolny kamień (Granatowy) -->
+          <path d="M15,75 C12,62 88,60 85,75 C82,88 18,88 15,75 Z" fill="#0D1B2A"/>
+          <!-- Środkowy kamień (Granatowy) -->
+          <path d="M25,54 C25,43 75,41 75,54 C75,65 25,65 25,54 Z" fill="#0D1B2A"/>
+          <!-- Górny kamień (Szmaragdowy) -->
+          <path d="M38,33 C38,24 62,25 62,33 C62,41 38,41 38,33 Z" fill="#00C896"/>
+        </svg>
+        <div class="brand-text">ZenETFs</div>
+      </div>
+      <div class="tagline">Długi horyzont - Spokojne zyski</div>
+      
+      <div class="description">
+        <strong>Symbolika:</strong> Trzy nałożone na siebie gładkie kamienie, ułożone od największego do najmniejszego. Stanowią ostoję i równowagę.<br>
+        <strong>Klimat:</strong> Bardzo stabilny, uspokajający umysł inwestora, wzbudzający pełne zaufanie i brak paniki.
+        <div class="color-dots">
+          <div class="dot" style="background:#0D1B2A"></div>
+          <div class="dot" style="background:#00C896"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

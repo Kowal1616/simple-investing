@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block meta_description %}ZenETFs — O projekcie. Edukacyjne narzędzie porównujące długoterminowe wyniki historyczne pasywnych strategii portfelowych na europejskim rynku.{% endblock %}
+{% block title %}O nas{% endblock %}
+
+{% block main %}
+<div class="page-hero">
+  <div class="section-label">Filozofia</div>
+  <h1>O ZenETFs</h1>
+  <p>Poznaj narzędzie stworzone z myślą o europejskich inwestorach pasywnych, ceniących długi horyzont i niskie koszty.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  
+  <div class="about-grid" style="margin-bottom: 40px;">
+    <!-- Mission -->
+    <div class="about-card">
+      <div class="about-card-icon"><i data-lucide="target" style="width:28px;height:28px;"></i></div>
+      <h3>Nasza Misja</h3>
+      <p>ZenETFs promuje tanie, bezstresowe długoterminowe inwestowanie inspirowane filozofią Bogleheads. Głównym elementem aplikacji jest dynamiczna tabela prezentująca długoterminowe stopy zwrotu portfeli bazujących na historycznych danych sięgających 30 lat wstecz.</p>
+    </div>
+
+    <!-- Origins -->
+    <div class="about-card">
+      <div class="about-card-icon"><i data-lucide="code" style="width:28px;height:28px;"></i></div>
+      <h3>Początki</h3>
+      <p>Narzędzie początkowo nosiło nazwę "Simple Investing" i powstało jako projekt końcowy dla legendarnego kursu informatyki CS50. Przekształciło się w ZenETFs, ewoluując zarówno pod kątem technologii bazowej (z Flask do FastAPI), jak i zaawansowanego designu użyteczności.</p>
+    </div>
+  </div>
+
+  <h2 class="section-heading" style="margin-top:20px;">Jak to działa?</h2>
+  <div class="about-grid" style="margin-bottom: 40px;">
+    <div class="about-card" style="grid-column: 1 / -1; padding: 40px;">
+      
+      <div class="process-steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-content">
+            <h4>Pobieranie danych</h4>
+            <p>Raz w miesiącu synchronizujemy wyceny ETF z zewnętrznych źródeł, zapewniając dokładność. Zmiany z miesiąca na miesiąc w zupełności wystarczają dla pasywnego podejścia polegającego na "kup i trzymaj".</p>
+          </div>
+        </div>
+        
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-content">
+            <h4>Analiza historyczna</h4>
+            <p>Dane miesięczne wzbogacają naszą bazę zawierającą połączone i zrekonstruowane wskaźniki rynkowe na przestrzeni 30 lat (nawet przed powstaniem samych funduszy ETF).</p>
+          </div>
+        </div>
+        
+        <div class="step" style="padding-bottom:0;">
+          <div class="step-num">3</div>
+          <div class="step-content">
+            <h4>Kalkulacje</h4>
+            <p>Używając wskaźnika <a href="https://pl.wikipedia.org/wiki/Skumulowany_roczny_wskaźnik_wzrostu" target="_blank" rel="noopener" style="color:var(--green);text-decoration:none;font-weight:600;">CAGR (Compound Annual Growth Rate)</a> na okresach 5, 10, 20 i 30 lat, aplikacja ukazuje precyzyjną, odporną na chwilowe wahania uśrednioną skuteczność poszczególnych strategii i wysyła ją na główny pulpit.</p>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+
+</div>
+{% endblock %}

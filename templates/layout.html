@@ -1,170 +1,912 @@
 <!doctype html>
-<html lang="en" class="h-100" data-bs-theme="auto">
-  <head>
-      <meta charset="utf-8">
-      <meta name="description" content="Simple investing tool - long term strategies comparison, 5, 10, 20, 30 years average yield">
-      <meta name="keywords" content="investing, etfs, ucits, comparison, strategies, portfolio">
-      <meta name="robots" content="index, follow">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="{{ lang | default('en') }}" class="h-100">
 
-      <title>SIMPLE INVESTING: {% block title %}{% endblock %}</title>
-      
-      <!-- Include Bootstrap theme CSS -->
-      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description"
+    content="{% block meta_description %}ZenETFs — Long-term ETF portfolio comparison tool for European investors. CAGR data for 5, 10, 20 and 30 years.{% endblock %}">
+  <meta name="keywords" content="ETF, UCITS, investing, portfolio, CAGR, comparison, European, passive investing">
+  <meta name="robots" content="index, follow">
+  <title>ZenETFs — {% block title %}{% endblock %}</title>
 
-      <!-- Include Grid.js JavaScript module -->
-      <script type="module" src="https://unpkg.com/gridjs?module"></script>
-      <!-- Include Grid.js theme CSS -->
-      <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+  <!-- Favicons -->
+  <link rel="icon" href="/static/favicon.webp" type="image/webp">
+  <meta name="theme-color" content="#00C896">
 
-      <!-- Favicons -->
-      <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" sizes="180x180">
-      <link rel="icon" href="/static/favicon-32x32.png" sizes="32x32" type="image/png">
-      <link rel="icon" href="/static/favicon-16x16.png" sizes="16x16" type="image/png">
-      <link rel="manifest" href="/static/site.webmanifest">
-      <link rel="android-chrome-192x192" href="/static/android-chrome-192x192.png" sizes="192x192" type="image/png">
-      <link rel="android-chrome-512x512" href="/static/android-chrome-512x512.png" sizes="512x512" type="image/png">
-      <meta name="theme-color" content="#712cf9">
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-      <style>
-        .bd-placeholder-img {
-          font-size: 1.125rem;
-          text-anchor: middle;
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          user-select: none;
-        }
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 
-        @media (min-width: 768px) {
-          .bd-placeholder-img-lg {
-            font-size: 3.5rem;
-          }
-        }
+  <!-- Grid.js (preserved for comparison table) -->
+  <script type="module" src="https://unpkg.com/gridjs?module"></script>
 
-        .b-example-divider {
-          width: 100%;
-          background-color: rgba(0, 0, 0, .1);
-          border: solid rgba(0, 0, 0, .15);
-          border-width: 1px 0;
-          box-shadow: inset 0 .5em 1.5em rgba(0, 0, 0, .1), inset 0 .125em .5em rgba(0, 0, 0, .15);
-        }
+  <style>
+    /* ── DESIGN SYSTEM ──────────────────────── */
+    :root {
+      --bg: #0D1B2A;
+      --surface: #1A2B3C;
+      --surface-2: #1f3347;
+      --border: #243447;
+      --green: #00C896;
+      --green-dim: rgba(0, 200, 150, 0.12);
+      --green-glow: rgba(0, 200, 150, 0.3);
+      --blue: #4A90E2;
+      --text: #F0F4F8;
+      --text-muted: #8B9BAB;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --transition: 0.2s ease;
+      --max-w: 1100px;
+    }
 
-        .b-example-vr {
-          flex-shrink: 0;
-          width: 1.5rem;
-          height: 100vh;
-        }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .bi {
-          vertical-align: -.125em;
-          fill: currentColor;
-        }
+    html {
+      scroll-behavior: smooth;
+    }
 
-        .nav-scroller {
-          position: relative;
-          z-index: 2;
-          height: 2.75rem;
-          overflow-y: hidden;
-        }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+    }
 
-        .nav-scroller .nav {
-          display: flex;
-          flex-wrap: nowrap;
-          padding-bottom: 1rem;
-          margin-top: -1px;
-          overflow-x: auto;
-          text-align: center;
-          white-space: nowrap;
-          -webkit-overflow-scrolling: touch;
-        }
+    /* ── NAVBAR ─────────────────────────────── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: rgba(13, 27, 42, 0.9);
+      border-bottom: 1px solid var(--border);
+      padding: 0 40px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
 
-        .btn-bd-primary {
-          --bd-violet-bg: #712cf9;
-          --bd-violet-rgb: 112.520718, 44.062154, 249.437846;
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
 
-          --bs-btn-font-weight: 600;
-          --bs-btn-color: var(--bs-white);
-          --bs-btn-bg: var(--bd-violet-bg);
-          --bs-btn-border-color: var(--bd-violet-bg);
-          --bs-btn-hover-color: var(--bs-white);
-          --bs-btn-hover-bg: #6528e0;
-          --bs-btn-hover-border-color: #6528e0;
-          --bs-btn-focus-shadow-rgb: var(--bd-violet-rgb);
-          --bs-btn-active-color: var(--bs-btn-hover-color);
-          --bs-btn-active-bg: #5a23c8;
-          --bs-btn-active-border-color: #5a23c8;
-        }
+    /* Enso Growth SVG Logo */
+    .nav-logo {
+      width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+    }
 
-        .bd-mode-toggle {
-          z-index: 1500;
-        }
+    .nav-brand-text {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
 
-        .bd-mode-toggle .dropdown-menu .active .bi {
-          display: block !important;
-        }
+    .nav-brand-text .zen {
+      color: var(--text);
+    }
 
-        .left-align {
-          text-align: left;
-        }
+    .nav-brand-text .etfs {
+      color: var(--green);
+    }
 
-        .right-align {
-          text-align: right;
-        }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
 
-        .justify-align {
-          text-align: justify;
-        }
+    .nav-links {
+      display: flex;
+      gap: 28px;
+      list-style: none;
+    }
 
-        .center-align {
-          test-align: center;
-        }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      transition: color var(--transition);
+      padding-bottom: 3px;
+      border-bottom: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
 
-        .title-link {
-          text-decoration: none; 
-          color: inherit;
-        }
-        
-      </style>
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: var(--text);
+      border-bottom-color: var(--green);
+    }
 
-      <!-- Custom styles for this template -->
-      <link href="https://getbootstrap.com/docs/5.3/examples/cover/cover.css" rel="stylesheet">
-  </head>
-  <body class="d-flex text-center text-bg-dark">
+    /* Language Switcher */
+    .lang-switcher {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px;
+    }
 
-    <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-      <header class="mb-auto">
-        <div class="d-flex justify-content-start align-items-center">
-          <a href="/"><img src="/static/logo.webp" alt="Logo" width="40" height="40"></a>
-          <a class="title-link" href="/"><h3 class="mb-0 ms-2 me-4">Simple Investing</h3></a>
-          <nav class="nav nav-masthead justify-content-center float-md-end">
-            <a class="nav-link fw-bold py-1 px-0 {% if request.path == '/' %}active{% endif %}" href="/">Comparison tool</a>
-            <a class="nav-link fw-bold py-1 px-0 {% if request.path == '/portfolios' %}active{% endif %}" href="/portfolios">Portfolios</a>
-            <a class="nav-link fw-bold py-1 px-0 {% if request.path == '/etfs' %}active{% endif %}" href="/etfs">ETFs</a>
-            <a class="nav-link fw-bold py-1 px-0 {% if request.path == '/about' %}active{% endif %}" href="/about">About</a>
-          </nav>
-        </div>
-        
-      </header>
+    .lang-btn {
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 16px;
+      text-decoration: none;
+      color: var(--text-muted);
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
 
-      <main class="px-3">
-        {% block main %}{% endblock %}
-      </main>
+    .lang-btn.active,
+    .lang-btn:hover {
+      background: var(--green);
+      color: #0D1B2A;
+    }
 
-      <footer class="mt-auto text-white-50" style="font-size: small;">
-        <p class="justify-align">Disclaimer: Author is not a financial advisor. The information provided on this webpage is for
-          educational purposes only and does not constitute investment advice. The historical performance of
-          various investment strategies/portfolios is not indicative of future results. Data might be inaccurate and/or contain mistakes.
-        </p>
-        <p>
-          Based on <a href="https://getbootstrap.com/" rel="nofollow" target="_blank" class="text-white">Bootstrap</a>, template made by <a href="https://twitter.com/mdo" target="_blank" class="text-white">@mdo</a>.
-        </p>
-      </footer>
+    /* Hamburger (mobile) */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* ── MAIN ───────────────────────────────── */
+    main {
+      flex: 1;
+    }
+
+    /* ── HERO ───────────────────────────────── */
+    .hero {
+      position: relative;
+      padding: 80px 40px 60px;
+      text-align: center;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 50% 40%, rgba(0, 200, 150, 0.08) 0%, transparent 65%);
+      pointer-events: none;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--green-dim);
+      border: 1px solid rgba(0, 200, 150, 0.3);
+      color: var(--green);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 54px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    .hero h1 .highlight {
+      background: linear-gradient(135deg, var(--green), #00e0aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .tagline {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* ── BUTTONS ────────────────────────────── */
+    .btn-primary {
+      background: var(--green);
+      color: #0D1B2A;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all var(--transition);
+      box-shadow: 0 0 20px var(--green-glow);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-primary:hover {
+      background: #00dea8;
+      transform: translateY(-1px);
+      box-shadow: 0 0 30px var(--green-glow);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: all var(--transition);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-muted);
+      color: var(--text);
+    }
+
+    /* ── STATS BAR ──────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 4px 40px 56px;
+    }
+
+    .stat-card {
+      background: rgba(26, 43, 60, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      text-align: center;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .stat-card:hover {
+      border-color: rgba(0, 200, 150, 0.35);
+      transform: translateY(-2px);
+    }
+
+    .stat-icon {
+      color: var(--green);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--green);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── SECTIONS ───────────────────────────── */
+    .section {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 40px 80px;
+    }
+
+    .section-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 6px;
+    }
+
+    .section-heading {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 24px;
+    }
+
+    /* ── DATA TABLE ─────────────────────────── */
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .data-table thead {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .data-table th {
+      padding: 13px 18px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .data-table th:not(:first-child) {
+      text-align: center;
+    }
+
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+
+    .data-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    .data-table td {
+      padding: 15px 18px;
+      vertical-align: middle;
+    }
+
+    .data-table td:not(:first-child) {
+      text-align: center;
+    }
+
+    .port-name {
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .port-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .port-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    .cagr-badge {
+      display: inline-block;
+      background: var(--green-dim);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 200, 150, 0.18);
+      letter-spacing: 0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cagr-badge.negative {
+      background: rgba(244, 63, 94, 0.12); /* rose-500 dim */
+      color: #f43f5e; /* rose-500 */
+      border-color: rgba(244, 63, 94, 0.18);
+    }
+
+    /* ── PORTFOLIO CARDS ────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+      gap: 20px;
+    }
+
+    .portfolio-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color var(--transition), transform var(--transition);
+    }
+
+    .portfolio-card:hover {
+      border-color: rgba(0, 200, 150, 0.35);
+      transform: translateY(-3px);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 3px;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .card-metrics {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .metric-item {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      padding: 10px;
+    }
+
+    .metric-period {
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 3px;
+    }
+
+    .metric-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.01em;
+    }
+
+    .card-etfs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .etf-tag {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--blue);
+      border: 1px solid rgba(74, 144, 226, 0.18);
+      font-weight: 500;
+    }
+
+    .card-link {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .card-link:hover {
+      color: #00dea8;
+    }
+
+    /* ── ETF TABLE BADGES ───────────────────── */
+    .type-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .type-acc {
+      background: rgba(0, 200, 150, 0.1);
+      color: var(--green);
+      border: 1px solid rgba(0, 200, 150, 0.22);
+    }
+
+    .type-dist {
+      background: rgba(74, 144, 226, 0.1);
+      color: var(--blue);
+      border: 1px solid rgba(74, 144, 226, 0.22);
+    }
+
+    .ticker-code {
+      background: var(--surface-2);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── ABOUT PAGE ─────────────────────────── */
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .about-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 26px;
+    }
+
+    .about-card-icon {
+      color: var(--green);
+      margin-bottom: 12px;
+    }
+
+    .about-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .about-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .process-steps {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .step {
+      display: flex;
+      gap: 18px;
+      padding-bottom: 24px;
+      position: relative;
+    }
+
+    .step:not(:last-child)::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 32px;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .step-num {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--green-dim);
+      border: 2px solid var(--green);
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      z-index: 1;
+    }
+
+    .step-content h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Page hero (inner pages) */
+    .page-hero {
+      padding: 50px 40px 32px;
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+
+    .page-hero h1 {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .page-hero p {
+      color: var(--text-muted);
+      max-width: 580px;
+      font-size: 15px;
+    }
+
+    /* ── FOOTER ─────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      margin-top: auto;
+    }
+
+    .footer-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 28px 40px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-disclaimer {
+      font-size: 11px;
+      color: var(--text-muted);
+      max-width: 640px;
+      line-height: 1.6;
+    }
+
+    .footer-brand {
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── MOBILE NAV ─────────────────────────── */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0 20px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .nav-toggle {
+        display: flex;
+      }
+
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 64px;
+        left: 0;
+        right: 0;
+        background: var(--bg);
+        border-bottom: 1px solid var(--border);
+        padding: 20px;
+        gap: 16px;
+        z-index: 99;
+      }
+
+      .hero {
+        padding: 50px 20px 40px;
+      }
+
+      .stats-bar {
+        grid-template-columns: 1fr 1fr;
+        padding: 4px 20px 40px;
+      }
+
+      .section {
+        padding: 0 20px 60px;
+      }
+
+      .page-hero {
+        padding: 36px 20px 24px;
+      }
+
+      .about-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-inner {
+        padding: 24px 20px;
+        flex-direction: column;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-bar {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* ── NOTE BOX ───────────────────────────── */
+    .info-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ═══ NAVBAR ═══════════════════════════════ -->
+  <nav class="navbar">
+    <a href="/{{ lang | default('en') }}/" class="nav-brand">
+      <!-- ZenETFs Logo Image -->
+      <img class="nav-logo" src="/static/logo.webp" alt="ZenETFs Logo" width="38" height="38">
+      <span class="nav-brand-text"><span class="zen">Zen</span><span class="etfs">ETFs</span></span>
+    </a>
+
+    <div class="nav-right">
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/{{ lang | default('en') }}/" {% if active_page=='index' %}class="active" {% endif %}>
+            <i data-lucide="bar-chart-2" style="width:14px;height:14px;"></i>
+            {% if lang == 'pl' %}Porównanie{% else %}Compare{% endif %}
+          </a></li>
+        <li><a href="/{{ lang | default('en') }}/portfolios" {% if active_page=='portfolios' %}class="active" {% endif
+            %}>
+            <i data-lucide="briefcase" style="width:14px;height:14px;"></i>
+            {% if lang == 'pl' %}Portfele{% else %}Portfolios{% endif %}
+          </a></li>
+        <li><a href="/{{ lang | default('en') }}/etfs" {% if active_page=='etfs' %}class="active" {% endif %}>
+            <i data-lucide="trending-up" style="width:14px;height:14px;"></i>
+            {% if lang == 'pl' %}ETFy{% else %}ETFs{% endif %}
+          </a></li>
+        <li><a href="/{{ lang | default('en') }}/about" {% if active_page=='about' %}class="active" {% endif %}>
+            <i data-lucide="info" style="width:14px;height:14px;"></i>
+            {% if lang == 'pl' %}O nas{% else %}About{% endif %}
+          </a></li>
+      </ul>
+
+      <!-- Language switcher -->
+      <div class="lang-switcher">
+        <a href="/pl{{ request.url.path | replace('/pl', '') | replace('/en', '') }}"
+          class="lang-btn {% if lang == 'pl' %}active{% endif %}">PL</a>
+        <a href="/en{{ request.url.path | replace('/pl', '') | replace('/en', '') }}"
+          class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
+      </div>
+
+      <!-- Mobile toggle -->
+      <button class="nav-toggle" id="nav-toggle" aria-label="Menu"
+        onclick="document.getElementById('nav-links').classList.toggle('open')">
+        <i data-lucide="menu" style="width:22px;height:22px;"></i>
+      </button>
     </div>
+  </nav>
 
-    <!-- Bootstrap core JavaScript -->
-    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script>window.jQuery || document.write('<script src="../../assets/js/vendor/jquery-slim.min.js"><\/script>')</script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <!-- ═══ MAIN ════════════════════════════════ -->
+  <main>
+    {% block main %}{% endblock %}
+  </main>
 
-  </body>
+  <!-- ═══ FOOTER ══════════════════════════════ -->
+  <footer>
+    <div class="footer-inner">
+      <p class="footer-disclaimer">
+        <i data-lucide="shield-alert" style="width:12px;height:12px;display:inline;margin-right:4px;"></i>
+        {% if lang == 'pl' %}
+        Zastrzeżenie: Autor nie jest doradcą finansowym. Informacje na tej stronie mają charakter edukacyjny i nie
+        stanowią porady inwestycyjnej. Wyniki historyczne nie są wskaźnikiem przyszłych zwrotów. Dane mogą zawierać
+        błędy.
+        {% else %}
+        Disclaimer: The author is not a financial advisor. Information is for educational purposes only. Historical
+        performance is not indicative of future results. Data may contain inaccuracies.
+        {% endif %}
+      </p>
+      <div class="footer-brand">
+        <img src="/static/logo.webp" alt="ZenETFs Logo" width="16" height="16" style="margin-right: 2px;">
+        <span style="font-weight: 700;"><span style="color: var(--text);">Zen</span><span style="color: var(--green);">ETFs</span></span> &copy; 2026
+      </div>
+    </div>
+  </footer>
+
+  <!-- Init Lucide icons -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => { lucide.createIcons(); });
+  </script>
+
+</body>
+
 </html>

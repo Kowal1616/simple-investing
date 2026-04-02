@@ -1,0 +1,162 @@
+{% extends "layout.html" %}
+
+{% block meta_description %}ZenETFs — Compare long-term ETF portfolio strategies for European investors. CAGR data for 5, 10, 20 and 30 years.{% endblock %}
+{% block title %}Comparison Tool{% endblock %}
+
+{% block main %}
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-content">
+
+    <h1>Compare <span class="highlight">investment</span><br>strategies</h1>
+    <p class="tagline">Long term — No stress.<br>ETF UCITS portfolios with historical data up to 30 years, updated monthly.</p>
+    <div class="hero-actions">
+      <a href="#comparison" class="btn-primary">
+        <i data-lucide="bar-chart-2" style="width:16px;height:16px;"></i>
+        Go to table
+      </a>
+      <a href="/en/portfolios" class="btn-secondary">
+        <i data-lucide="briefcase" style="width:16px;height:16px;"></i>
+        Browse portfolios
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="calendar" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">30</div>
+    <div class="stat-label">years of data</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="briefcase" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">6</div>
+    <div class="stat-label">portfolios</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="trending-up" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value">CAGR</div>
+    <div class="stat-label">methodology</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i data-lucide="shield-check" style="width:22px;height:22px;"></i></div>
+    <div class="stat-value" style="font-size: 20px;">UCITS</div>
+    <div class="stat-label">european etfs</div>
+  </div>
+</div>
+
+<!-- Comparison Table -->
+<section class="section" id="comparison">
+  <div class="section-label">Comparison Tool</div>
+  <div class="section-heading">Annual Returns (CAGR)</div>
+
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Portfolio</th>
+          <th data-sort="assets" style="cursor:pointer; user-select:none;" title="Sort by assets">Assets</th>
+          <th data-sort="return5" style="cursor:pointer; user-select:none;" title="Sort by 5 yr">5 Years</th>
+          <th data-sort="return10" style="cursor:pointer; user-select:none;" title="Sort by 10 yr">10 Years</th>
+          <th data-sort="return20" style="cursor:pointer; user-select:none;" title="Sort by 20 yr">20 Years</th>
+          <th data-sort="return30" style="cursor:pointer; user-select:none;" title="Sort by 30 yr">30 Years</th>
+        </tr>
+      </thead>
+      <tbody id="portfolio-tbody">
+        <tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted);">
+          <i data-lucide="loader" style="width:18px;height:18px;display:inline;animation:spin 1s linear infinite;"></i>
+          Loading data...
+        </td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="info-note">
+    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
+    <span>Based on European UCITS ETF prices (EUR). CAGR assumes dividend reinvestment (accumulating funds). Historical performance is not indicative of future results.</span>
+  </div>
+</section>
+
+<style>
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+</style>
+
+<script>
+  let portfolioData = [];
+  let sortCol = null;
+  let sortAsc = true;
+  const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
+
+  function renderTable() {
+    const tbody = document.getElementById('portfolio-tbody');
+    tbody.innerHTML = portfolioData.map((p, i) => `
+        <tr>
+          <td>
+            <div class="port-name">
+              <div class="port-dot" style="background:${colors[i % colors.length]}"></div>
+              <div>
+                ${p.name}
+                <div class="port-sub">${p.assets} ETF${p.assets > 1 ? 's' : ''}</div>
+              </div>
+            </div>
+          </td>
+          <td>${p.assets}</td>
+          <td><span class="cagr-badge ${p.return5 < 0 ? 'negative' : ''}">${p.return5}%</span></td>
+          <td><span class="cagr-badge ${p.return10 < 0 ? 'negative' : ''}">${p.return10}%</span></td>
+          <td><span class="cagr-badge ${p.return20 < 0 ? 'negative' : ''}">${p.return20}%</span></td>
+          <td><span class="cagr-badge ${p.return30 < 0 ? 'negative' : ''}">${p.return30}%</span></td>
+        </tr>
+      `).join('');
+    lucide.createIcons();
+  }
+
+  function sortData(colKey) {
+    if (sortCol === colKey) {
+      sortAsc = !sortAsc;
+    } else {
+      sortCol = colKey;
+      sortAsc = true;
+    }
+    portfolioData.sort((a, b) => {
+      let valA = parseFloat(a[colKey]);
+      let valB = parseFloat(b[colKey]);
+      return sortAsc ? valA - valB : valB - valA;
+    });
+    renderTable();
+    updateHeaders();
+  }
+
+  function updateHeaders() {
+    const ths = document.querySelectorAll('.data-table th[data-sort]');
+    ths.forEach(th => {
+      let baseText = th.innerText.replace(/ ↑| ↓/g, '');
+      if (th.getAttribute('data-sort') === sortCol) {
+        th.innerText = baseText + (sortAsc ? ' ↑' : ' ↓');
+      } else {
+        th.innerText = baseText;
+      }
+    });
+  }
+
+  async function loadPortfolios() {
+    const tbody = document.getElementById('portfolio-tbody');
+    try {
+      const res = await fetch('/api/data');
+      portfolioData = await res.json();
+      renderTable();
+      
+      document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
+      });
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Error loading data. Please refresh the page.</td></tr>';
+      lucide.createIcons();
+    }
+  }
+  document.addEventListener('DOMContentLoaded', loadPortfolios);
+</script>
+
+{% endblock %}

@@ -1,0 +1,11 @@
+services:
+  investing-app:
+    build: .
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+      - ./financial_data_v2.db:/app/financial_data_v2.db
+    restart: unless-stopped

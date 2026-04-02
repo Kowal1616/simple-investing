@@ -1,0 +1,130 @@
+{% extends "layout.html" %}
+{% block meta_description %}ZenETFs — Portfele ETF UCITS dla europejskich inwestorów pasywnych. Strategia Bogleheads, niskie koszty, długi horyzont inwestycyjny.{% endblock %}
+{% block title %}Portfele{% endblock %}
+
+{% block main %}
+<div class="page-hero">
+  <div class="section-label">Strategie inwestycyjne</div>
+  <h1>Portfele ETF</h1>
+  <p>Wybrane zgodnie z zasadami inwestowania pasywnego: minimalna liczba aktywów, niskie koszty, fundusze akumulujące.</p>
+</div>
+
+<div class="section" style="padding-top:0;">
+  <div class="cards-grid">
+
+    <div class="portfolio-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Globalna Technologia</div>
+          <div class="card-subtitle">Sektor technologiczny</div>
+        </div>
+        <div class="card-icon" style="background:rgba(167,139,250,0.12);"><i data-lucide="cpu" style="color:#a78bfa;width:22px;height:22px;"></i></div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">16,10%</div></div>
+        <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">21,51%</div></div>
+        <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">22,69%</div></div>
+        <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">23,09%</div></div>
+      </div>
+      <div class="card-etfs"><span class="etf-tag">XDWT</span></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Portfel skupiony na wiodących firmach technologicznych na całym świecie. Wysoki potencjał wzrostu przy wyższej zmienności.</p>
+    </div>
+
+    <div class="portfolio-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">USA (S&amp;P 500)</div>
+          <div class="card-subtitle">Rynek amerykański</div>
+        </div>
+        <div class="card-icon" style="background:rgba(74,144,226,0.12);"><i data-lucide="landmark" style="color:#4A90E2;width:22px;height:22px;"></i></div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">12,68%</div></div>
+        <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">13,93%</div></div>
+        <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">9,60%</div></div>
+        <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">8,80%</div></div>
+      </div>
+      <div class="card-etfs"><span class="etf-tag">SXR8</span></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Śledzenie indeksu S&P 500 — 500 największych spółek z USA. Solidna ekspozycja na największą gospodarkę świata.</p>
+    </div>
+
+    <div class="portfolio-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Cały Świat</div>
+          <div class="card-subtitle">Globalna dywersyfikacja</div>
+        </div>
+        <div class="card-icon" style="background:rgba(0,200,150,0.12);"><i data-lucide="globe-2" style="color:#00C896;width:22px;height:22px;"></i></div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">10,95%</div></div>
+        <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">11,66%</div></div>
+        <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">6,66%</div></div>
+        <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">6,85%</div></div>
+      </div>
+      <div class="card-etfs"><span class="etf-tag">IUSQ</span></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Ekspozycja na rynki rozwinięte i wschodzące na całym świecie. Maksymalna dywersyfikacja geograficzna w jednym ETF.</p>
+    </div>
+
+    <div class="portfolio-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">80-20 Akcje–Obligacje</div>
+          <div class="card-subtitle">Zrównoważony wzrost</div>
+        </div>
+        <div class="card-icon" style="background:rgba(245,158,11,0.12);"><i data-lucide="scale" style="color:#f59e0b;width:22px;height:22px;"></i></div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">10,51%</div></div>
+        <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">10,87%</div></div>
+        <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">8,09%</div></div>
+        <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">7,58%</div></div>
+      </div>
+      <div class="card-etfs"><span class="etf-tag">EUNL</span><span class="etf-tag">SYBJ</span></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">80% akcji rynków rozwiniętych + 20% obligacji europejskich. Dobry balans między wzrostem a stabilnością.</p>
+    </div>
+
+    <div class="portfolio-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">60-40 Akcje–Obligacje</div>
+          <div class="card-subtitle">Niższa zmienność</div>
+        </div>
+        <div class="card-icon" style="background:rgba(249,115,22,0.12);"><i data-lucide="shield" style="color:#f97316;width:22px;height:22px;"></i></div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">9,26%</div></div>
+        <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">9,41%</div></div>
+        <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">7,35%</div></div>
+        <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">6,87%</div></div>
+      </div>
+      <div class="card-etfs"><span class="etf-tag">EUNL</span><span class="etf-tag">SYBJ</span></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">60% akcji + 40% obligacji. Portfel dla inwestorów ceniących stabilność i spokojny sen bardziej niż maksymalny zysk.</p>
+    </div>
+
+    <div class="portfolio-card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Złoto</div>
+          <div class="card-subtitle">Wartość i ochrona</div>
+        </div>
+        <div class="card-icon" style="background:rgba(251,191,36,0.12);"><i data-lucide="gem" style="color:#fbbf24;width:22px;height:22px;"></i></div>
+      </div>
+      <div class="card-metrics">
+        <div class="metric-item"><div class="metric-period">5 lat</div><div class="metric-val">24,97%</div></div>
+        <div class="metric-item"><div class="metric-period">10 lat</div><div class="metric-val">15,09%</div></div>
+        <div class="metric-item"><div class="metric-period">20 lat</div><div class="metric-val">12,47%</div></div>
+        <div class="metric-item"><div class="metric-period">30 lat</div><div class="metric-val">9,54%</div></div>
+      </div>
+      <div class="card-etfs"><span class="etf-tag">4GLD</span></div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">Fizyczne złoto jako aktywo zabezpieczające. Sprawdzona ochrona przed inflacją i kryzysami ekonomicznymi.</p>
+    </div>
+
+  </div>
+
+  <div class="info-note" style="margin-top:24px;">
+    <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
+    <span>Wyniki CAGR są przybliżone i oparte na danych historycznych. Portfele mieszane (Akcje–Obligacje) korzystają z akcji rynków rozwiniętych (EUNL) i europejskich obligacji high yield (SYBJ).</span>
+  </div>
+</div>
+{% endblock %}
