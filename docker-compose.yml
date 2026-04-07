@@ -2,7 +2,7 @@ services:
   investing-app:
     build: .
     ports:
-      - "5000:5000"
+      - "80:5000"
     env_file:
       - .env
     volumes:
