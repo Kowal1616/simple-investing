@@ -1,6 +1,7 @@
 import os
 import httpx
 import logging
+from datetime import datetime
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -240,6 +241,49 @@ async def en_about(request: Request):
 @app.get("/api/data")
 def get_data():
     return get_portfolio_data()
+
+# SEO files
+@app.get("/robots.txt", response_class=Response)
+async def robots_txt():
+    content = "User-agent: *\nAllow: /\nSitemap: https://zenetfs.com/sitemap.xml\n"
+    return Response(content=content, media_type="text/plain")
+
+@app.get("/sitemap.xml", response_class=Response)
+async def sitemap():
+    base_url = "https://zenetfs.com"
+    pages = ["", "portfolios", "etfs", "about"]
+    date_now = datetime.utcnow().strftime("%Y-%m-%d")
+    
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>']
+    xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
+    
+    for page in pages:
+        path = f"/{page}" if page else ""
+        pl_url = f"{base_url}/pl{path}"
+        en_url = f"{base_url}/en{path}"
+        
+        # PL entry
+        xml.append('  <url>')
+        xml.append(f'    <loc>{pl_url}</loc>')
+        xml.append(f'    <lastmod>{date_now}</lastmod>')
+        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="pl" href="{pl_url}"/>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>')
+        xml.append('  </url>')
+        
+        # EN entry
+        xml.append('  <url>')
+        xml.append(f'    <loc>{en_url}</loc>')
+        xml.append(f'    <lastmod>{date_now}</lastmod>')
+        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="pl" href="{pl_url}"/>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>')
+        xml.append('  </url>')
+
+    xml.append('</urlset>')
+    return Response(content="\n".join(xml), media_type="application/xml")
 
 if __name__ == "__main__":
     import uvicorn
