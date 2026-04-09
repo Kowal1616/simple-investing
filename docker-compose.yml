@@ -1,11 +1,43 @@
 services:
+
+  # 1. Main application – pulled from GitHub Container Registry
   investing-app:
-    build: .
-    ports:
-      - "80:5000"
+    image: ghcr.io/kowal1616/simple-investing:latest
+    container_name: investing-app
+    restart: always
+    expose:
+      - "5000"
     env_file:
       - .env
     volumes:
-      # Only mount the instance folder for the SQLite database
+      # Persist SQLite database between container restarts/updates
       - ./instance:/app/instance
-    restart: unless-stopped
+    labels:
+      # Let Watchtower manage only labelled containers
+      - "com.centurylinklabs.watchtower.enable=true"
+
+  # 2. Nginx Proxy Manager – reverse proxy + Let's Encrypt SSL
+  nginx-proxy:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: nginx-proxy
+    restart: always
+    ports:
+      - "80:80"   # HTTP (also used by Let's Encrypt ACME challenge)
+      - "443:443" # HTTPS
+      - "81:81"   # NPM admin panel – change default password immediately!
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+
+  # 3. Watchtower – monitors labelled containers and pulls new images automatically
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --label-enable --interval 300 --cleanup
+
+volumes:
+  npm_data:
+  npm_letsencrypt:

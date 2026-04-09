@@ -8,3 +8,7 @@ financial_data.db
 *.db
 .vscode/
 get-docker.sh
+
+# Nginx Proxy Manager runtime data (created on server, not committed)
+nginx-data/
+letsencrypt/
