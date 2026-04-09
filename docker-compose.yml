@@ -31,7 +31,7 @@ services:
 
   # 3. Watchtower – monitors labelled containers and pulls new images automatically
   watchtower:
-    image: containrrr/watchtower
+    image: nickfedor/watchtower:latest
     container_name: watchtower
     restart: always
     volumes:
