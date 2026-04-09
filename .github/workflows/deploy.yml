@@ -35,3 +35,12 @@ jobs:
             ghcr.io/kowal1616/simple-investing:sha-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Send WhatsApp Notification
+        if: success()
+        env:
+          CALLMEBOT_API_KEY: ${{ secrets.CALLMEBOT_API_KEY }}
+          MY_PHONE_NUMBER: ${{ secrets.MY_PHONE_NUMBER }}
+        run: |
+          pip install requests --quiet
+          python scripts/notify_whatsapp.py
