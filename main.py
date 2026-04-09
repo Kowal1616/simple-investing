@@ -61,6 +61,8 @@ def update_job():
             # helpers.get_portfolio_returns(db.session)
             # helpers.get_portfolios_results(db.session)
             
+            success_msg = "🚀 ZenETFs: Comiesięczna aktualizacja danych zakończona sukcesem!"
+            helpers.notify_success(success_msg)
             logging.info("Background update job completed successfully.")
         except Exception as e:
             logging.error('An error occurred in update_job(): %s', e, exc_info=True)

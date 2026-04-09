@@ -43,6 +43,8 @@ A robust financial analysis tool designed to track and visualize long-term inves
    ```env
    ALPHAVANTAGE_API_KEY=your_api_key_here
    ADMIN_EMAIL=your_email@example.com
+   CALLMEBOT_API_KEY=your_callmebot_api_key
+   MY_PHONE_NUMBER=your_phone_number_with_country_code
    ```
 
 5. **Run the application locally:**
