@@ -23,7 +23,7 @@ def send_whatsapp_notification() -> None:
         return
 
     message = (
-        "🚀 ZenETFs: Nowa wersja została pomyślnie wdrożona na serwer 107.174.71.163!"
+        "🛠 ZenETFs: Nowy kod został przesłany do rejestru (GHCR). Serwer wkrótce pobierze aktualizację."
     )
     encoded_message = quote(message)
 

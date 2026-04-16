@@ -83,7 +83,7 @@ class SystemNotifier:
             Never raises an exception — all failures are logged instead.
         """
         # 1. Send WhatsApp Error Alert
-        whatsapp_msg = f"⚠️ ZenETFs Error: {message}"
+        whatsapp_msg = "⚠️ ZenETFs: BŁĄD podczas aktualizacji danych! Szczegóły wysłano na e-mail (Brevo)."
         self._send_whatsapp(whatsapp_msg)
 
         # 2. Send Email Error Alert
