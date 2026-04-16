@@ -43,8 +43,12 @@ A robust financial analysis tool designed to track and visualize long-term inves
    ```env
    ALPHAVANTAGE_API_KEY=your_api_key_here
    ADMIN_EMAIL=your_email@example.com
+   # WhatsApp (CallMeBot)
    CALLMEBOT_API_KEY=your_callmebot_api_key
    MY_PHONE_NUMBER=your_phone_number_with_country_code
+   # Email (Brevo)
+   NOTIFIER_API_KEY=your_brevo_api_key
+   NOTIFIER_SENDER_EMAIL=your_sender_email@example.com
    ```
 
 5. **Run the application locally:**
@@ -59,6 +63,15 @@ The application runs on a production-ready containerized stack with a fully auto
 1. **Continuous Integration (CI):** Every push to the `main` branch triggers a GitHub Actions workflow. This builds a new Docker image, tags it with a unique commit SHA, and pushes it to the GitHub Container Registry (GHCR).
 2. **Continuous Deployment (CD) with Watchtower:** An actively maintained fork of Watchtower (`nickfedor/watchtower`) runs as a background container on the production server. It checks GHCR every 5 minutes for new image layers. Upon detecting a change, it automatically pulls the new image, updates the application container, and removes old data.
 3. **Reverse Proxy & SSL:** **Nginx Proxy Manager** sits in front of the application network. It manages HTTPS traffic, automatically provisions and renews SSL certificates via Let's Encrypt, and forwards requests securely to the isolated FastAPI container on port 5000.
+
+## 📢 Monitoring & Notifications
+
+ZenETFs features a dual-channel notification system to ensure high availability and visibility of system status:
+
+*   **Deployment Alerts (CI/CD):** Triggered by GitHub Actions. Sends a WhatsApp message when a new version is successfully pushed to the registry.
+*   **System Health (Runtime):** The running application monitors its own processes. 
+    *   **Success:** A WhatsApp notification is sent after every successful monthly database update.
+    *   **Errors:** Multi-channel alerts (WhatsApp + Email via Brevo) are sent immediately if any runtime exceptions or database integrity issues occur.
 
 To manually start the production stack on the server:
 ```bash
