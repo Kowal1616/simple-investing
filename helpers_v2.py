@@ -97,30 +97,40 @@ def append_etfs_prices(etfs_prices, session):
             return
 
         for row in etfs_prices:
-            # Check for duplicates
-            exists = (session.query(HistoricalDataEtfs)
-                      .filter_by(date=row['date'], etf_id=row['etf_id'])
-                      .first())
+            # Check for duplicates securely without flushing previous failed inserts
+            with session.no_autoflush:
+                exists = (session.query(HistoricalDataEtfs)
+                          .filter_by(date=row['date'], etf_id=row['etf_id'])
+                          .first())
+                
             if exists:
                 logging.info('Row for etf_id=%s date=%s already exists — skipping',
                              row['etf_id'], row['date'])
                 continue
             
-            # Anonymize source if needed (just in case it's still using old names)
+            # Anonymize source if needed
             source = row.get('source', 'provider_a')
             if source == 'yfinance': source = 'provider_a'
             elif source == 'alphavantage': source = 'provider_b'
 
-            session.add(HistoricalDataEtfs(
-                date=row['date'],
-                etf_id=row['etf_id'],
-                price=row['price'],
-                is_simulated=False,
-                source=source,
-            ))
-        session.commit()
+            try:
+                session.add(HistoricalDataEtfs(
+                    date=row['date'],
+                    etf_id=row['etf_id'],
+                    price=row['price'],
+                    is_simulated=False,
+                    source=source,
+                ))
+                session.commit()
+            except Exception as loop_ext:
+                session.rollback()
+                logging.warning(
+                    'Insert failed for etf_id=%s date=%s (likely concurrent insert). Exception: %s',
+                    row['etf_id'], row['date'], loop_ext
+                )
 
     except Exception as e:
+        session.rollback()
         fn = inspect.currentframe().f_code.co_name
         logging.error('Error in %s: %s', fn, e, exc_info=True)
         update_error_email(e)

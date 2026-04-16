@@ -65,6 +65,7 @@ def update_job():
             helpers.notify_success(success_msg)
             logging.info("Background update job completed successfully.")
         except Exception as e:
+            db.session.rollback()
             logging.error('An error occurred in update_job(): %s', e, exc_info=True)
             helpers.update_error_email(e)
 
