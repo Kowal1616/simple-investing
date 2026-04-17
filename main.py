@@ -18,7 +18,7 @@ import helpers_v2 as helpers
 from scripts.sync_macro import run_sync as run_macro_sync
 
 # ── Setup & Configuration ───────────────────────────────────────────────────
-load_dotenv()
+load_dotenv(override=True)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_URL = "https://zenetfs.com"
 
