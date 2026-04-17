@@ -127,6 +127,13 @@ async def startup_event():
     # In multi-worker prod environments, ensure this only runs once or use a separate worker.
     start_scheduler()
 
+    # App Startup Notification
+    try:
+        startup_msg = "🚀 ZenETFs: Nowa wersja aplikacji została pomyślnie uruchomiona na serwerze!"
+        helpers.notify_success(startup_msg)
+    except Exception as e:
+        logging.error("Failed to send startup notification: %s", e)
+
 @app.on_event("shutdown")
 async def shutdown_event():
     if scheduler.state == STATE_RUNNING:

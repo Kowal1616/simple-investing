@@ -15,3 +15,18 @@ loglevel = "info"
 
 # Path to the application
 # Use 'main:app' when running gunicorn -c gunicorn_conf.py main:app
+
+def when_ready(server):
+    """
+    Called just after the server is started. 
+    We use this to send a single startup notification via WhatsApp.
+    """
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(override=True)
+        import helpers_v2
+        msg = "🚀 ZenETFs: Nowa wersja aplikacji została pomyślnie uruchomiona na serwerze!"
+        helpers_v2.notify_success(msg)
+    except Exception as e:
+        print(f"Failed to send startup notification via Gunicorn hook: {e}")
+

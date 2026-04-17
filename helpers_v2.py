@@ -208,7 +208,7 @@ def get_portfolio_returns(session):
             continue
 
         # Use Pandas for robust resampling and alignment
-        blended_returns = pd.Series(0.0, dtype=float)
+        blended_returns = pd.Series(dtype=float)
 
         for etf_id, pct in composition:
             rows = (session.query(HistoricalDataEtfs.date, HistoricalDataEtfs.price)
