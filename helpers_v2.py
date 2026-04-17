@@ -190,14 +190,12 @@ def get_portfolio_returns(session):
     """
     Compute portfolio CAGR returns for 5, 10, 20, 30, 40-year periods.
 
-    CORRECT method:
-      1. Build a blended portfolio value series:
-           portfolio_value[t] = sum(etf_price[t] * weight for each ETF)
-      2. Compute CAGR on the *blended* series:
-           cagr = (portfolio_value[-1] / portfolio_value[-N]) ^ (1/years) - 1
-
-    This is correct because CAGR of a weighted portfolio ≠ weighted average of
-    individual CAGRs — the V1 approach was mathematically wrong for multi-asset portfolios.
+    CORRECT method for V3 (Monthly Compound Returns):
+      1. Compute monthly percentage returns for each ETF.
+      2. Blend the Returns using the original startup weight:
+           portfolio_return[t] = sum(etf_return[t] * weight for each ETF)
+      3. Compound the blended monthly returns into a Wealth Index series.
+      4. Compute CAGR on the Wealth series.
     """
     portfolios = session.query(Portfolios).all()
     all_returns = []
@@ -215,33 +213,43 @@ def get_portfolio_returns(session):
             all_returns.append([0.0] * 5)
             continue
 
-        # Build blended monthly value series
-        blended: list | None = None
+        # Build blended monthly returns series
+        blended_returns: list | None = None
         for etf_id, pct in composition:
             prices = _get_etf_price_series(etf_id, session)
-            if not prices:
-                blended = None
+            if not prices or len(prices) < 2:
+                blended_returns = None
                 break
-            weighted = [p * pct for p in prices]
-            if blended is None:
-                blended = weighted
+            
+            # Compute monthly returns
+            returns = [(prices[i] / prices[i-1]) - 1 for i in range(1, len(prices))]
+            weighted_returns = [r * pct for r in returns]
+            
+            if blended_returns is None:
+                blended_returns = weighted_returns
             else:
-                # Series may differ in length if ETF data starts at different dates;
-                # align from the end (most recent data) — use the shorter length
-                min_len = min(len(blended), len(weighted))
-                blended = [blended[-(min_len - i)] + weighted[-(min_len - i)]
-                           for i in range(min_len - 1, -1, -1)]
-                blended = list(reversed(blended))
+                # Align from the right (most recent data)
+                min_len = min(len(blended_returns), len(weighted_returns))
+                blended_returns = [
+                    blended_returns[-(min_len - i)] + weighted_returns[-(min_len - i)]
+                    for i in range(min_len - 1, -1, -1)
+                ]
+                blended_returns = list(reversed(blended_returns))
 
-        if not blended:
+        if not blended_returns:
             all_returns.append([0.0] * 5)
             continue
 
-        n = len(blended)
+        # Convert the blended returns back into a compounded Wealth Index
+        blended_series = [1.0]
+        for r in blended_returns:
+            blended_series.append(blended_series[-1] * (1 + r))
+
+        n = len(blended_series)
         portfolio_yields = []
         for period, yrs in zip(periods, years):
-            if n > period and blended[-(period + 1)] and blended[-(period + 1)] > 0:
-                cagr = round(((blended[-1] / blended[-(period + 1)]) ** (1 / yrs) - 1) * 100, 2)
+            if n > period and blended_series[-(period + 1)] and blended_series[-(period + 1)] > 0:
+                cagr = round(((blended_series[-1] / blended_series[-(period + 1)]) ** (1 / yrs) - 1) * 100, 2)
                 portfolio_yields.append(cagr)
             else:
                 portfolio_yields.append(0.0)
@@ -352,8 +360,8 @@ def get_real_portfolio_returns(session, currency: str = 'EUR') -> list:
 
 def get_portfolios_results(session):
     """
-    Build monthly blended portfolio value series for each portfolio.
-    Returns list of lists of floats.
+    Build monthly blended portfolio wealth series for each portfolio.
+    Returns list of lists of floats (Starting index 100.0).
     """
     portfolios = session.query(Portfolios).all()
     all_results = []
@@ -363,23 +371,36 @@ def get_portfolios_results(session):
                                      PortfolioComposition.percentage)
                        .filter_by(portfolio_id=portfolio.id)
                        .all())
-        blended: list | None = None
+        blended_returns: list | None = None
 
         for etf_id, pct in composition:
             prices = _get_etf_price_series(etf_id, session)
-            if not prices:
-                blended = None
+            if not prices or len(prices) < 2:
+                blended_returns = None
                 break
-            weighted = [p * pct for p in prices]
-            if blended is None:
-                blended = weighted
+            
+            returns = [(prices[i] / prices[i-1]) - 1 for i in range(1, len(prices))]
+            weighted_returns = [r * pct for r in returns]
+            
+            if blended_returns is None:
+                blended_returns = weighted_returns
             else:
-                min_len = min(len(blended), len(weighted))
-                blended = [blended[-(min_len - i)] + weighted[-(min_len - i)]
-                           for i in range(min_len - 1, -1, -1)]
-                blended = list(reversed(blended))
+                min_len = min(len(blended_returns), len(weighted_returns))
+                blended_returns = [
+                    blended_returns[-(min_len - i)] + weighted_returns[-(min_len - i)]
+                    for i in range(min_len - 1, -1, -1)
+                ]
+                blended_returns = list(reversed(blended_returns))
 
-        all_results.append(blended or [])
+        if not blended_returns:
+            all_results.append([])
+            continue
+            
+        blended_series = [100.0]
+        for r in blended_returns:
+            blended_series.append(blended_series[-1] * (1 + r))
+
+        all_results.append(blended_series)
 
     return all_results
 

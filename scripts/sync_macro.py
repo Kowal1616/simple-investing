@@ -13,10 +13,12 @@ Responsibilities:
 FRED series used (Annual frequency straight from FRED):
   - FPCPITOTLZGEMU   : Inflation, consumer prices for the Euro Area (Annual %)
   - FPCPITOTLZGPOL   : Inflation, consumer prices for Poland (Annual %)
-  - AEXUSEU          : U.S. Dollars to Euro Spot Exchange Rate (Annual)
-  - CCUSMA02PLA618N  : National Currency: USD for Poland (Annual, PLN per USD)
+  - CCUSMA02EZA618N  : Currency Conversions: EUR per USD (Annual average)
+  - CCUSMA02PLA618N  : Currency Conversions: PLN per USD (Annual average)
 
-EUR/PLN cross-rate:  EUR/PLN = AEXUSEU × CCUSMA02PLA618N
+EUR/PLN cross-rate:  EUR/PLN = (PLN per USD) / (EUR per USD)
+
+This OECD series (CCUSMA...) automatically handles ECU pre-1999 history for the Euro Area.
 """
 
 import os
@@ -56,8 +58,8 @@ PERIODS    = [5, 10, 20, 30]
 SERIES = {
     'cpi_eur': 'FPCPITOTLZGEMU',
     'cpi_pln': 'FPCPITOTLZGPOL',
-    'fx_usd_eur': 'AEXUSEU',            # USD per 1 EUR
-    'fx_pln_usd': 'CCUSMA02PLA618N',    # PLN per 1 USD
+    'fx_eur_usd': 'CCUSMA02EZA618N',  # EUR per 1 USD (OECD)
+    'fx_pln_usd': 'CCUSMA02PLA618N',  # PLN per 1 USD (OECD)
 }
 
 
@@ -185,20 +187,17 @@ def _backfill_missing_eur_rates(session, currency: str) -> None:
     log.info("Backfilling EUR/%s rates for %d years...", currency, len(rows_missing))
 
     for row in rows_missing:
-        usd_eur = _fetch_annual_point(SERIES['fx_usd_eur'], row.year)
-        pln_usd = _fetch_annual_point(SERIES['fx_pln_usd'], row.year)
+        eur_usd_val = _fetch_annual_point(SERIES['fx_eur_usd'], row.year)
+        pln_usd_val = _fetch_annual_point(SERIES['fx_pln_usd'], row.year)
 
-        if usd_eur is None or pln_usd is None:
-            # We might not have data that far back (e.g. before 1999 for EUR/USD). 
-            # In that case we can approximate or just leave it NULL to skip computations.
-            log.warning("Could not fetch FX data for %d (USD_EUR: %s, PLN_USD: %s).", 
-                        row.year, usd_eur, pln_usd)
-            # Temporary fallback for the 90s: use standard placeholder for old PL data or 0 to ignore.
-            # However we want accurate calculation. If missing, we leave it as None and it won't be calculated.
+        if eur_usd_val is None or pln_usd_val is None:
+            log.warning("Could not fetch FX data for %d (EUR_USD: %s, PLN_USD: %s).", 
+                        row.year, eur_usd_val, pln_usd_val)
             continue
 
-        # Cross-rate: EUR/PLN = (PLN per USD) × (USD per EUR)
-        eur_pln = round(pln_usd * usd_eur, 6)
+        # Cross-rate: EUR/PLN = (PLN per USD) / (EUR per USD)
+        # We want PLN per 1 EUR.
+        eur_pln = round(pln_usd_val / eur_usd_val, 6)
         row.eur_rate = eur_pln
         log.info("  %d: EUR/PLN = %.4f", row.year, eur_pln)
 
@@ -239,11 +238,11 @@ def fetch_and_insert_year(session, target_year: int) -> bool:
 
     if not pln_exists:
         pln_cpi = _fetch_annual_point(SERIES['cpi_pln'], target_year)
-        usd_eur = _fetch_annual_point(SERIES['fx_usd_eur'], target_year)
-        pln_usd = _fetch_annual_point(SERIES['fx_pln_usd'], target_year)
+        eur_usd_val = _fetch_annual_point(SERIES['fx_eur_usd'], target_year)
+        pln_usd_val = _fetch_annual_point(SERIES['fx_pln_usd'], target_year)
 
-        if pln_cpi is not None and usd_eur is not None and pln_usd is not None:
-            eur_pln = round(pln_usd * usd_eur, 6)
+        if pln_cpi is not None and eur_usd_val is not None and pln_usd_val is not None:
+            eur_pln = round(pln_usd_val / eur_usd_val, 6)
             session.add(AnnualMacroData(
                 year=target_year,
                 currency_code='PLN',
@@ -255,8 +254,8 @@ def fetch_and_insert_year(session, target_year: int) -> bool:
                      target_year, pln_cpi, eur_pln)
             inserted_any = True
         else:
-            log.info("FRED: incomplete PLN data for %d yet. (CPI:%s, USD_EUR:%s, PLN_USD:%s)", 
-                     target_year, pln_cpi, usd_eur, pln_usd)
+            log.info("FRED: incomplete PLN data for %d yet. (CPI:%s, EUR_USD:%s, PLN_USD:%s)", 
+                     target_year, pln_cpi, eur_usd_val, pln_usd_val)
 
     return inserted_any
 
@@ -346,10 +345,9 @@ def run_sync(session) -> None:
     # Step 2: Determine recent years to try extending
     current_year = datetime.date.today().year
     
-    # We check the last few years to fill any gaps (up to previous year).
-    # FRED data (annual GDP/CPI) often publishes in late Jan/Feb.
+    # We check the last many years to fill any gaps (back to 1985 for initial sync)
     new_data = False
-    for y in range(current_year - 3, current_year):
+    for y in range(current_year - 40, current_year):
         if fetch_and_insert_year(session, y):
             new_data = True
 

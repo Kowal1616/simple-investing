@@ -1,108 +1,61 @@
-# ZenETFs - Long-term Strategy Analyzer
+# ZenETFs (SimpleInvesting) - Long-term Strategy Analyzer
 
-A robust financial analysis tool designed to track and visualize long-term investment strategies. The application focuses on 30-year performance horizons, providing investors with reliable data insights through a sophisticated multi-source data aggregation engine.
+ZenETFs is a sophisticated financial analysis platform designed for evaluating long-term investment strategies over extended horizons (30+ years). The system utilizes a high-performance aggregation engine to synthesize market and macroeconomic data, providing investors with accurate, inflation-adjusted performance metrics for complex asset portfolios.
 
-## 🚀 Key Features
+## Core Engine Features
 
-* **Consensus Price Engine:** Aggregates financial information from multiple independent market data providers (e.g., Yahoo Finance, AlphaVantage) to ensure accuracy and reliability.
-* **Inflation-Adjusted Returns (Real CAGR):** Toggleable inflation correction using live CPI data from the FRED API, allowing users to see purchasing power performance.
-* **Multi-Currency Support (PLN/EUR):** Sophisticated currency translation logic that automatically adapts to the user's language (PL for PLN-based returns, EN for EUR-based), including historical EUR/PLN exchange rate impact.
-* **Long-term Strategy Backtesting:** Specialized in analyzing ETF performance and investment models over extended periods (up to 30 years).
-* **Monthly Data Integrity:** Automated updates designed for long-term tracking, reducing noise from daily market volatility.
-* **Macroeconomic Sync:** Dedicated engine for fetching and caching global inflation rates and exchange rates.
-* **Modern & Responsive UI:** Custom dark-mode interface optimized for both desktop and mobile, with seamless PL/EN language switching.
-* **Automated CI/CD Pipeline:** Fully automated, "hands-off" deployments utilizing modern DevOps practices.
-## 🛠 Tech Stack
+### Multi-Source Data Aggregator
+The platform implements advanced data validation logic across multiple **Professional Financial APIs**. By aggregating disparate market signals, the engine ensures high data integrity and eliminates single-source dependencies, providing a reliable consensus for asset pricing and valuation.
 
-* **Backend:** Python / FastAPI / Gunicorn
-* **Database:** SQLite with SQLAlchemy ORM
-* **Frontend:** HTML5, Vanilla CSS3 (Custom Design System), Jinja2, Lucide Icons
-* **Infrastructure:** Docker, Docker Compose
-* **CI/CD:** GitHub Actions (Image Build & Push to GHCR), Watchtower (Auto-deployment)
-* **Networking & Security:** Nginx Proxy Manager (Reverse Proxy, Auto SSL Termination via Let's Encrypt) 
+### Inflation & FX-Adjusted Returns (Real CAGR)
+To track true purchasing power, ZenETFs features a sophisticated mechanism for calculating **Real CAGR**. This process incorporates local consumer price indices and historical exchange rate fluctuations, allowing investors to analyze performance in terms of real-world value rather than nominal figures.
 
-## 📦 Local Development Setup
+### V3 Portfolio Architecture
+The system utilizes an automated **3-ETF Basket Strategy** for each asset class. This architecture provides a mathematically balanced representation of market segments, ensuring that portfolio modeling reflects a diversified and weighted average of the target markets.
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Kowal1616/simple-investing.git
-   cd simple-investing
-   ```
+### Rebalanced Compounding Logic
+Portfolio performance is calculated using a robust **Monthly Compound Returns** algorithm. This logic eliminates common errors associated with asset denomination differences and ensures that reinvestment and rebalancing effects are accurately captured over the three-decade analysis window.
 
-2. **Set up virtual environment:**
+## Technical Ecosystem
+
+### Backend
+**Modern Python (FastAPI):** The core service has been fully migrated to an asynchronous FastAPI architecture. This transition ensures high concurrency, low-latency data processing, and superior performance compared to legacy synchronous frameworks.
+
+### Frontend
+**Responsive Dark-Mode UI:** Built with standard HTML5, Vanilla CSS3, and JavaScript, the interface is integrated with Jinja2 for dynamic server-side rendering. The design system is optimized for accessibility and mobility, providing a premium user experience across all devices.
+
+### Infrastructure
+**Containerized Orchestration:** The entire application stack is fully containerized using **Docker** and **Docker Compose**. A dedicated **Nginx Proxy Manager** handles SSL termination and reverse proxying, ensuring secure and efficient traffic management.
+
+### DevOps & Automation
+**Automated CI/CD Pipeline:** Leveraging **GitHub Actions**, the platform implements a "hands-off" deployment workflow. The **Continuous Deployment (Watchtower)** mechanism automatically detects registry updates and rotates containers in real-time, ensuring zero-downtime updates.
+
+## Reliability & Security
+
+### Dual-Channel Notification System
+A hybrid monitoring system provides real-time visibility into system health and deployment status. Stakeholders receive synchronized alerts via **Mobile Messaging** and **Email** for deployment confirmations and critical runtime events.
+
+### Configuration Management
+Strict adherence to a **Zero-Hardcoding Policy** ensures that sensitive data is entirely decoupled from the source code. Configuration is managed exclusively through secure environment variables, following industry-standard safety practices.
+
+## Setup & Usage Guidelines
+
+### Installation
+The application requires a standard Python environment (3.10+ recommended):
+
+1. **Virtual Environment Setup:**
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate
    ```
 
-3. **Install dependencies:**
+2. **Dependency Installation:**
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Configure Environment Variables:**
-   Create a `.env` file based on the `.env.example` provided:
-   ```env
-   # API Keys
-   ALPHAVANTAGE_API_KEY=your_api_key_here
-   ECONOMIC_DATA_PROVIDER_KEY=your_fred_api_key_here
-   
-   # Admin
-   ADMIN_EMAIL=your_email@example.com
-   # WhatsApp (CallMeBot)
-   CALLMEBOT_API_KEY=your_callmebot_api_key
-   MY_PHONE_NUMBER=your_phone_number_with_country_code
-   # Email (Brevo)
-   NOTIFIER_API_KEY=your_brevo_api_key
-   NOTIFIER_SENDER_EMAIL=your_sender_email@example.com
-   ```
+### Environment Variables
+To operate the data ingestion and notification engines, a `.env` file must be prepared in the root directory. This file should contain the necessary API keys and configuration parameters according to the internal project specification. Ensure that the service has access to the required market data endpoints and notification gateways.
 
-## 🔄 Data Synchronization
-
-The application relies on automated scripts to keep data fresh and accurate:
-
-*   **ETF Prices:** Updated automatically via scheduler on the 10th of every month.
-*   **Macroeconomic Data:** Syncs annual CPI inflation and exchange rates from FRED. Can be run manually:
-    ```bash
-    python scripts/sync_macro.py
-    ```
-
-## 🚀 Running the Application
-
-For development with hot-reload:
-```bash
-uvicorn main:app --reload
-```
-For production:
-```bash
-gunicorn -c gunicorn_conf.py main:app
-```
-## 🚀 Deployment & Production (CI/CD)
-
-The application runs on a production-ready containerized stack with a fully automated pipeline:
-
-1. **Continuous Integration (CI):** Every push to the `main` branch triggers a GitHub Actions workflow. This builds a new Docker image, tags it with a unique commit SHA, and pushes it to the GitHub Container Registry (GHCR).
-2. **Continuous Deployment (CD) with Watchtower:** An actively maintained fork of Watchtower (`nickfedor/watchtower`) runs as a background container on the production server. It checks GHCR every 5 minutes for new image layers. Upon detecting a change, it automatically pulls the new image, updates the application container, and removes old data.
-3. **Reverse Proxy & SSL:** **Nginx Proxy Manager** sits in front of the application network. It manages HTTPS traffic, automatically provisions and renews SSL certificates via Let's Encrypt, and forwards requests securely to the isolated FastAPI container on port 5000.
-
-## 📢 Monitoring & Notifications
-
-ZenETFs features a dual-channel notification system to ensure high availability and visibility of system status:
-
-*   **Deployment Alerts (CI/CD):** Triggered by GitHub Actions. Sends a WhatsApp message when a new version is successfully pushed to the registry.
-*   **System Health (Runtime):** The running application monitors its own processes. 
-    *   **Success:** A WhatsApp notification is sent after every successful monthly database update.
-    *   **Errors:** Multi-channel alerts (WhatsApp + Email via Brevo) are sent immediately if any runtime exceptions or database integrity issues occur.
-
-To manually start the production stack on the server:
-```bash
-docker compose pull
-docker compose up -d
-```
-
-## 🛡 Disclaimer
-
-For Educational Purposes Only.
-The information provided by this application is for educational and informational purposes only and should not be construed as professional financial, investment, or legal advice. Past performance is not indicative of future results. All investment strategies involve risk of loss. The author is not responsible for any financial decisions made based on the data provided by this tool.
-
-Developed as a high-performance investment tracking solution.
+---
+*Developed for high-performance financial strategy analysis and long-term asset tracking.*
