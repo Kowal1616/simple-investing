@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 
 from models_v2 import db, Portfolios
 import helpers_v2 as helpers
+from scripts.sync_macro import run_sync as run_macro_sync
 
 # Load environment variables
 load_dotenv()
@@ -116,17 +117,6 @@ def update():
         # Append historical_data_etfs table
         helpers.append_etfs_prices(etfs_prices, db.session)
 
-        # Compute etfs yields
-        # (Calculated but no longer stored in DB)
-        etfs_yields = helpers.get_etfs_yields(db.session)
-
-        # Compute portfolios returns 
-        # (Calculated but no longer stored in DB)
-        portfolios_returns = helpers.get_portfolio_returns(db.session)
-
-        # Compute inflation rates
-        currencies_inflation = helpers.get_inflation(db.session)
-
         # Compute portfolios historical results
         portfolios_results = helpers.get_portfolios_results(db.session)
 
@@ -136,6 +126,19 @@ def update():
     except Exception as e:
         logging.error('An error occurred in update(): %s', e, exc_info=True)
         helpers.update_error_email(e)
+
+
+def sync_macro():
+    """Sync macroeconomic data (CPI inflation + EUR/currency FX rates) from FRED."""
+    with app.app_context():
+        session = db.session()
+        try:
+            run_macro_sync(session)
+        except Exception as e:
+            session.rollback()
+            logging.error('An error occurred in sync_macro(): %s', e, exc_info=True)
+        finally:
+            session.close()
 
 
 # Shut down the scheduler when application ends
@@ -148,7 +151,10 @@ def start_scheduler():
     """Start the background scheduler if not already running."""
     if not scheduler.running:
         # misfire_grace_time=3600 allows jobs to run even if the scheduler was down/busy for up to an hour
+        # ETF price update: 10th of every month at 04:00 AM
         scheduler.add_job(func=update, trigger=CronTrigger(day='10', hour='4'), misfire_grace_time=3600)
+        # Macro data sync: 10th of every month at 05:00 AM (1h after ETF job)
+        scheduler.add_job(func=sync_macro, trigger=CronTrigger(day='10', hour='5'), misfire_grace_time=3600)
         scheduler.start()
 
 if __name__ == "__main__":

@@ -111,17 +111,40 @@ def set_lang_cookie(response: Response, lang: str) -> None:
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def get_portfolio_data() -> list:
+def get_portfolio_data(currency: str = 'EUR') -> list:
+    """Return nominal CAGR portfolio data in the requested currency."""
     with flask_app.app_context():
         session = db.session()
         try:
             portfolios_list = session.query(Portfolios).all()
-            all_returns = helpers.get_portfolio_returns(session)
+            all_returns = helpers.get_portfolio_returns_in_currency(session, currency)
             return [
                 {
                     "name": portfolio.name,
                     "assets": int(portfolio.assets),
-                    "return5": float(round(returns[0], 2)),
+                    "return5":  float(round(returns[0], 2)),
+                    "return10": float(round(returns[1], 2)),
+                    "return20": float(round(returns[2], 2)),
+                    "return30": float(round(returns[3], 2)),
+                }
+                for portfolio, returns in zip(portfolios_list, all_returns)
+            ]
+        finally:
+            session.close()
+
+
+def get_real_portfolio_data(currency: str = 'EUR') -> list:
+    """Return inflation-adjusted (real) CAGR portfolio data in the requested currency."""
+    with flask_app.app_context():
+        session = db.session()
+        try:
+            portfolios_list = session.query(Portfolios).all()
+            all_returns = helpers.get_real_portfolio_returns(session, currency)
+            return [
+                {
+                    "name": portfolio.name,
+                    "assets": int(portfolio.assets),
+                    "return5":  float(round(returns[0], 2)),
                     "return10": float(round(returns[1], 2)),
                     "return20": float(round(returns[2], 2)),
                     "return30": float(round(returns[3], 2)),
@@ -210,6 +233,22 @@ async def en_about(request: Request):
 # ── API ───────────────────────────────────────────────────────────────────────
 
 @app.get("/api/data")
-def get_data():
-    """Return portfolio data as JSON for the comparison table."""
-    return get_portfolio_data()
+def get_data(inflation: bool = False, currency: str = "EUR"):
+    """
+    Return portfolio CAGR data as JSON.
+
+    Query parameters:
+      currency  : 'EUR' (default) or 'PLN'
+      inflation : false (default) — nominal CAGR
+                  true            — real CAGR adjusted for CPI inflation
+
+    Convention:
+      EN templates call with currency=EUR (default).
+      PL templates call with currency=PLN.
+    """
+    currency = currency.upper()
+    if currency not in ('EUR', 'PLN'):
+        currency = 'EUR'
+    if inflation:
+        return get_real_portfolio_data(currency)
+    return get_portfolio_data(currency)

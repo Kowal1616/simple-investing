@@ -20,7 +20,7 @@ import datetime
 import pandas as pd
 
 from models_v2 import Etfs, HistoricalDataEtfs, Portfolios, PortfolioComposition
-from models_v2 import InflationRates
+from models_v2 import AnnualMacroData, MacroAveragesCache
 from data_providers import FinancialDataService
 from notifications import SystemNotifier
 
@@ -242,33 +242,94 @@ def get_portfolio_returns(session):
 
 
 # ===========================================================================
-# Inflation
+# Inflation-adjusted and currency-converted portfolio returns
 # ===========================================================================
 
-def get_inflation(session):
+def get_portfolio_returns_in_currency(session, currency: str = 'EUR') -> list:
     """
-    Compute cumulative inflation for each currency over 5, 10, 20, 30, 40-year periods.
-    Sums the last N annual rates from inflation_rates table.
+    Return nominal CAGR for each portfolio in the requested currency.
+
+    For EUR: returns the raw EUR CAGR series unchanged.
+    For PLN: converts EUR CAGR to PLN using pre-computed annualised EUR/PLN
+             rate change from MacroAveragesCache.
+
+    Formula (PLN):
+        nominal_pln = (1 + eur_cagr/100) * (1 + avg_rate_change/100) - 1
+
+    This is mathematically exact because:
+        (rate_end/rate_start)^(1/N) - 1 == avg_eur_rate_change_pct (annualised)
+
+    All heavy lifting (rate averaging) is in the cache — only 2 operations here.
     """
-    currencies = [c[0] for c in session.query(InflationRates.currency_code).distinct().all()]
+    nominal_eur = get_portfolio_returns(session)   # existing function — EUR CAGR
+
+    if currency == 'EUR':
+        return nominal_eur
+
+    # Read pre-computed PLN rate changes from cache
+    cache = {
+        row.period_years: row
+        for row in session.query(MacroAveragesCache)
+                          .filter_by(currency_code='PLN').all()
+    }
+
+    if not cache:
+        logging.warning('MacroAveragesCache empty for PLN — returning EUR data.')
+        return nominal_eur
+
+    periods = [5, 10, 20, 30]
     result = []
+    for port_eur in nominal_eur:
+        pln_returns = []
+        for cagr_eur, yrs in zip(port_eur[:4], periods):
+            if yrs not in cache or cagr_eur == 0.0:
+                pln_returns.append(0.0)
+                continue
+            rate_chg = (cache[yrs].avg_eur_rate_change_pct or 0.0) / 100
+            nominal_pln = ((1 + cagr_eur / 100) * (1 + rate_chg) - 1) * 100
+            pln_returns.append(round(nominal_pln, 2))
+        result.append(pln_returns)
+    return result
 
-    for currency in currencies:
-        rates_rows = (session.query(InflationRates.rate)
-                      .filter_by(currency_code=currency)
-                      .order_by(InflationRates.year)
-                      .all())
-        rates = [r[0] for r in rates_rows]
-        n = len(rates)
-        periods_inflation = []
-        for yrs in [5, 10, 20, 30, 40]:
-            if n >= yrs:
-                total = sum(rates[-yrs:])
-                periods_inflation.append(round(total, 2))
-            else:
-                periods_inflation.append(0.0)
-        result.append(periods_inflation)
 
+def get_real_portfolio_returns(session, currency: str = 'EUR') -> list:
+    """
+    Return inflation-adjusted (real) CAGR for each portfolio in the requested currency.
+
+    Steps:
+      1. Get nominal CAGR in the target currency (via get_portfolio_returns_in_currency).
+      2. Look up pre-computed average annual CPI for the currency and period
+         from MacroAveragesCache.
+      3. Apply the Fisher formula:
+             real_cagr = (1 + nominal/100) / (1 + avg_cpi/100) - 1
+
+    No inflation calculations are performed here — all averages are pre-computed
+    by scripts/sync_macro.py and stored in macro_averages_cache.
+    """
+    nominal_data = get_portfolio_returns_in_currency(session, currency)
+
+    cache = {
+        row.period_years: row
+        for row in session.query(MacroAveragesCache)
+                          .filter_by(currency_code=currency).all()
+    }
+
+    if not cache:
+        logging.warning('MacroAveragesCache empty for %s — returning nominal data.', currency)
+        return nominal_data
+
+    periods = [5, 10, 20, 30]
+    result = []
+    for port_nominal in nominal_data:
+        real_returns = []
+        for cagr, yrs in zip(port_nominal, periods):
+            if yrs not in cache or cagr == 0.0:
+                real_returns.append(0.0)
+                continue
+            avg_inf = cache[yrs].avg_inflation_pct / 100
+            real_cagr = ((1 + cagr / 100) / (1 + avg_inf) - 1) * 100
+            real_returns.append(round(real_cagr, 2))
+        result.append(real_returns)
     return result
 
 

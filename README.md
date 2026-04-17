@@ -4,9 +4,12 @@ A robust financial analysis tool designed to track and visualize long-term inves
 
 ## 🚀 Key Features
 
-* **Consensus Price Engine:** Implements a proprietary data validation logic that aggregates financial information from multiple independent market data providers to ensure accuracy and reliability.
+* **Consensus Price Engine:** Implements a proprietary data validation logic that aggregates financial information from multiple independent market data providers (EUR basis).
+* **Inflation-Adjusted Returns (Real CAGR):** Toggleable inflation correction using live CPI data from the FRED API, allowing users to see purchasing power performance.
+* **Multi-Currency Support (PLN/EUR):** Sophisticated currency translation logic that automatically adapts to the user's language (PL for PLN-based returns, EN for EUR-based), including historical EUR/PLN exchange rate impact.
 * **Long-term Strategy Backtesting:** Specialized in analyzing ETF performance and investment models over extended periods (up to 30 years).
 * **Monthly Data Integrity:** Automated updates designed for long-term tracking, reducing noise from daily market volatility.
+* **Macroeconomic Sync:** Dedicated engine for fetching and caching global inflation rates and exchange rates.
 * **Data Abstraction Layer:** Fully decoupled architecture allowing seamless integration with various professional financial APIs.
 * **Clean & Informative UI:** Focused on clarity and actionable insights for strategic asset allocation.
 
@@ -42,14 +45,31 @@ A robust financial analysis tool designed to track and visualize long-term inves
    ```env
    DATA_PROVIDER_A_KEY=your_api_key_here
    DATA_PROVIDER_B_KEY=your_api_key_here
+   ECONOMIC_DATA_PROVIDER_KEY=your_fred_api_key_here
    NOTIFIER_API_KEY=your_api_key_here
    ADMIN_EMAIL=your_email@example.com
    ```
 
-5. **Run the application:**
-   ```bash
-   python app.py
-   ```
+## 🔄 Data Synchronization
+
+The application relies on automated scripts to keep data fresh and accurate:
+
+*   **ETF Prices:** Updated automatically via scheduler on the 10th of every month.
+*   **Macroeconomic Data:** Syncs annual CPI inflation and exchange rates from FRED. Can be run manually:
+    ```bash
+    python scripts/sync_macro.py
+    ```
+
+## 🚀 Running the Application
+
+For development with hot-reload:
+```bash
+uvicorn main:app --reload
+```
+For production:
+```bash
+gunicorn -c gunicorn_conf.py main:app
+```
 
 ## 🛡 Disclaimer
 
