@@ -483,6 +483,95 @@
       border-color: rgba(244, 63, 94, 0.18);
     }
 
+    /* ── TOGGLE SWITCH ──────────────────────── */
+    .toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 40px;
+      width: fit-content;
+      transform-origin: left;
+      transition: transform var(--transition);
+    }
+
+    .toggle-container:hover {
+      transform: scale(1.02);
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--surface-2);
+      transition: .3s;
+      border-radius: 24px;
+      border: 1px solid var(--border);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text-muted);
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--green-dim);
+      border-color: var(--green);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: var(--green);
+      box-shadow: 0 0 8px var(--green-glow);
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: color var(--transition);
+    }
+
+    input:checked ~ .toggle-label {
+      color: var(--text);
+    }
+
+    /* ── LOADING SKELETON ───────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+      border-radius: 4px;
+    }
+
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
     /* ── PORTFOLIO CARDS ────────────────────── */
     .cards-grid {
       display: grid;

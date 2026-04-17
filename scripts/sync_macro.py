@@ -208,56 +208,50 @@ def _backfill_missing_eur_rates(session, currency: str) -> None:
 
 def fetch_and_insert_year(session, target_year: int) -> bool:
     """
-    Fetch CPI and FX data for target_year from FRED and insert into annual_macro_data.
-    Returns True if ANY new data was inserted, False otherwise.
+    Fetch CPI and FX data for target_year from FRED and insert or update annual_macro_data.
+    Returns True if ANY data was changed, False otherwise.
     """
-    inserted_any = False
+    changed = False
 
     # ── EUR ──────────────────────────────────────────────────────────────────
-    eur_exists = session.query(AnnualMacroData).filter_by(
+    eur_row = session.query(AnnualMacroData).filter_by(
         year=target_year, currency_code='EUR').first()
 
-    if not eur_exists:
+    if not eur_row or eur_row.annual_inflation_pct == 0.0:
         eur_cpi = _fetch_annual_point(SERIES['cpi_eur'], target_year)
         if eur_cpi is not None:
-            session.add(AnnualMacroData(
-                year=target_year,
-                currency_code='EUR',
-                annual_inflation_pct=round(eur_cpi, 4),
-                eur_rate=None,
-            ))
+            if not eur_row:
+                eur_row = AnnualMacroData(year=target_year, currency_code='EUR', eur_rate=None)
+                session.add(eur_row)
+            
+            eur_row.annual_inflation_pct = round(eur_cpi, 4)
             session.commit()
-            log.info("Inserted EUR CPI for %d: %.2f%%", target_year, eur_cpi)
-            inserted_any = True
-        else:
-            log.info("FRED: no CPI data for EUR %d yet.", target_year)
+            log.info("Updated EUR CPI for %d: %.2f%%", target_year, eur_cpi)
+            changed = True
 
     # ── PLN ──────────────────────────────────────────────────────────────────
-    pln_exists = session.query(AnnualMacroData).filter_by(
+    pln_row = session.query(AnnualMacroData).filter_by(
         year=target_year, currency_code='PLN').first()
 
-    if not pln_exists:
+    if not pln_row or pln_row.annual_inflation_pct == 0.0 or pln_row.eur_rate is None:
         pln_cpi = _fetch_annual_point(SERIES['cpi_pln'], target_year)
         eur_usd_val = _fetch_annual_point(SERIES['fx_eur_usd'], target_year)
         pln_usd_val = _fetch_annual_point(SERIES['fx_pln_usd'], target_year)
 
         if pln_cpi is not None and eur_usd_val is not None and pln_usd_val is not None:
             eur_pln = round(pln_usd_val / eur_usd_val, 6)
-            session.add(AnnualMacroData(
-                year=target_year,
-                currency_code='PLN',
-                annual_inflation_pct=round(pln_cpi, 4),
-                eur_rate=eur_pln,
-            ))
+            if not pln_row:
+                pln_row = AnnualMacroData(year=target_year, currency_code='PLN')
+                session.add(pln_row)
+            
+            pln_row.annual_inflation_pct = round(pln_cpi, 4)
+            pln_row.eur_rate = eur_pln
             session.commit()
-            log.info("Inserted PLN data for %d: CPI=%.2f%%, EUR/PLN=%.4f",
+            log.info("Updated PLN data for %d: CPI=%.2f%%, EUR/PLN=%.4f",
                      target_year, pln_cpi, eur_pln)
-            inserted_any = True
-        else:
-            log.info("FRED: incomplete PLN data for %d yet. (CPI:%s, EUR_USD:%s, PLN_USD:%s)", 
-                     target_year, pln_cpi, eur_usd_val, pln_usd_val)
+            changed = True
 
-    return inserted_any
+    return changed
 
 
 # ── Cache pre-computation ─────────────────────────────────────────────────────

@@ -204,46 +204,60 @@ def set_lang_cookie(response: Response, lang: str) -> None:
 
 # ── Business Logic Helpers ──────────────────────────────────────────────────
 
-def get_portfolio_data(currency: str = 'EUR') -> list:
-    """Return nominal CAGR portfolio data in the requested currency."""
+def get_portfolio_data(currency: str = 'EUR', lang: str = 'en') -> list:
+    """Return nominal CAGR portfolio data in the requested currency, filtered by language."""
     with flask_app.app_context():
         session = db.session()
         try:
-            portfolios_list = session.query(Portfolios).all()
+            # Fetch all and filter in Python to ensure zipping remains aligned with helpers output
+            all_ports = session.query(Portfolios).order_by(Portfolios.id).all()
             all_returns = helpers.get_portfolio_returns_in_currency(session, currency)
-            return [
-                {
+            
+            result = []
+            for portfolio, returns in zip(all_ports, all_returns):
+                # Filter logic: hide EN portfolios on PL page and vice versa
+                if lang == 'pl' and portfolio.name.endswith(' EN'):
+                    continue
+                if lang == 'en' and portfolio.name.endswith(' PL'):
+                    continue
+                
+                result.append({
                     "name": portfolio.name,
                     "assets": int(portfolio.assets),
                     "return5":  float(round(returns[0], 2)),
                     "return10": float(round(returns[1], 2)),
                     "return20": float(round(returns[2], 2)),
                     "return30": float(round(returns[3], 2)),
-                }
-                for portfolio, returns in zip(portfolios_list, all_returns)
-            ]
+                })
+            return result
         finally:
             session.close()
 
 
-def get_real_portfolio_data(currency: str = 'EUR') -> list:
-    """Return inflation-adjusted (real) CAGR portfolio data in the requested currency."""
+def get_real_portfolio_data(currency: str = 'EUR', lang: str = 'en') -> list:
+    """Return inflation-adjusted (real) CAGR portfolio data in the requested currency, filtered by language."""
     with flask_app.app_context():
         session = db.session()
         try:
-            portfolios_list = session.query(Portfolios).all()
+            all_ports = session.query(Portfolios).order_by(Portfolios.id).all()
             all_returns = helpers.get_real_portfolio_returns(session, currency)
-            return [
-                {
+            
+            result = []
+            for portfolio, returns in zip(all_ports, all_returns):
+                if lang == 'pl' and portfolio.name.endswith(' EN'):
+                    continue
+                if lang == 'en' and portfolio.name.endswith(' PL'):
+                    continue
+                    
+                result.append({
                     "name": portfolio.name,
                     "assets": int(portfolio.assets),
                     "return5":  float(round(returns[0], 2)),
                     "return10": float(round(returns[1], 2)),
                     "return20": float(round(returns[2], 2)),
                     "return30": float(round(returns[3], 2)),
-                }
-                for portfolio, returns in zip(portfolios_list, all_returns)
-            ]
+                })
+            return result
         finally:
             session.close()
 
@@ -300,27 +314,23 @@ async def en_etfs(request: Request):
 async def en_about(request: Request):
     return templates.TemplateResponse(request, "en/about.html", ctx(request, "en", "about"))
 
-# API
 @app.get("/api/data")
-def get_data(inflation: bool = False, currency: str = "EUR"):
+def get_data(inflation: bool = False, currency: str = "EUR", lang: str = "en"):
     """
     Return portfolio CAGR data as JSON.
 
     Query parameters:
       currency  : 'EUR' (default) or 'PLN'
       inflation : false (default) — nominal CAGR
-                  true            — real CAGR adjusted for CPI inflation
-
-    Convention:
-      EN templates call with currency=EUR (default).
-      PL templates call with currency=PLN.
+                  true            — real CAGR
+      lang      : 'pl' or 'en'    — filters portfolios by language
     """
     currency = currency.upper()
     if currency not in ('EUR', 'PLN'):
         currency = 'EUR'
     if inflation:
-        return get_real_portfolio_data(currency)
-    return get_portfolio_data(currency)
+        return get_real_portfolio_data(currency, lang)
+    return get_portfolio_data(currency, lang)
 
 # SEO files
 @app.get("/robots.txt", response_class=Response)

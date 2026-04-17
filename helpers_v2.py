@@ -189,13 +189,7 @@ def _get_etf_price_series(etf_id: int, session) -> list:
 def get_portfolio_returns(session):
     """
     Compute portfolio CAGR returns for 5, 10, 20, 30, 40-year periods.
-
-    CORRECT method for V3 (Monthly Compound Returns):
-      1. Compute monthly percentage returns for each ETF.
-      2. Blend the Returns using the original startup weight:
-           portfolio_return[t] = sum(etf_return[t] * weight for each ETF)
-      3. Compound the blended monthly returns into a Wealth Index series.
-      4. Compute CAGR on the Wealth series.
+    Standardizes all data to Monthly frequency using Pandas.
     """
     portfolios = session.query(Portfolios).all()
     all_returns = []
@@ -213,44 +207,55 @@ def get_portfolio_returns(session):
             all_returns.append([0.0] * 5)
             continue
 
-        # Build blended monthly returns series
-        blended_returns: list | None = None
-        for etf_id, pct in composition:
-            prices = _get_etf_price_series(etf_id, session)
-            if not prices or len(prices) < 2:
-                blended_returns = None
-                break
-            
-            # Compute monthly returns
-            returns = [(prices[i] / prices[i-1]) - 1 for i in range(1, len(prices))]
-            weighted_returns = [r * pct for r in returns]
-            
-            if blended_returns is None:
-                blended_returns = weighted_returns
-            else:
-                # Align from the right (most recent data)
-                min_len = min(len(blended_returns), len(weighted_returns))
-                blended_returns = [
-                    blended_returns[-(min_len - i)] + weighted_returns[-(min_len - i)]
-                    for i in range(min_len - 1, -1, -1)
-                ]
-                blended_returns = list(reversed(blended_returns))
+        # Use Pandas for robust resampling and alignment
+        blended_returns = pd.Series(0.0, dtype=float)
 
-        if not blended_returns:
+        for etf_id, pct in composition:
+            rows = (session.query(HistoricalDataEtfs.date, HistoricalDataEtfs.price)
+                    .filter_by(etf_id=etf_id)
+                    .order_by(HistoricalDataEtfs.date)
+                    .all())
+            
+            if not rows: continue
+            
+            # Create Monthly Series
+            df = pd.DataFrame(rows, columns=['date', 'price'])
+            df['date'] = pd.to_datetime(df['date'])
+            df.set_index('date', inplace=True)
+            
+            # Resample to Monthly (Last) to normalize frequency
+            monthly_price = df['price'].resample('M').last()
+            
+            # Monthly returns
+            monthly_ret = monthly_price.pct_change().dropna()
+            
+            # Accumulate blended returns
+            if blended_returns.empty:
+                blended_returns = monthly_ret * pct
+            else:
+                # Align indices automatically
+                blended_returns = blended_returns.add(monthly_ret * pct, fill_value=0.0)
+
+        if blended_returns.empty:
             all_returns.append([0.0] * 5)
             continue
 
-        # Convert the blended returns back into a compounded Wealth Index
-        blended_series = [1.0]
-        for r in blended_returns:
-            blended_series.append(blended_series[-1] * (1 + r))
-
-        n = len(blended_series)
+        # Compound into Wealth Index
+        blended_series = (1 + blended_returns).cumprod()
+        prices = blended_series.tolist()
+        n = len(prices)
+        
         portfolio_yields = []
         for period, yrs in zip(periods, years):
-            if n > period and blended_series[-(period + 1)] and blended_series[-(period + 1)] > 0:
-                cagr = round(((blended_series[-1] / blended_series[-(period + 1)]) ** (1 / yrs) - 1) * 100, 2)
-                portfolio_yields.append(cagr)
+            if n >= period:
+                # prices[-1] is latest, prices[-(period+1)] is 1 month before start of period
+                try:
+                    val_now = prices[-1]
+                    val_start = prices[-(period + 1)] if n > period else 1.0
+                    cagr = round(((val_now / val_start) ** (1 / yrs) - 1) * 100, 2)
+                    portfolio_yields.append(cagr)
+                except:
+                    portfolio_yields.append(0.0)
             else:
                 portfolio_yields.append(0.0)
 
