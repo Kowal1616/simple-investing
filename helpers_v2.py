@@ -191,7 +191,7 @@ def get_portfolio_returns(session):
     Compute portfolio CAGR returns for 5, 10, 20, 30, 40-year periods.
     Standardizes all data to Monthly frequency using Pandas.
     """
-    portfolios = session.query(Portfolios).all()
+    portfolios = session.query(Portfolios).order_by(Portfolios.id).all()
     all_returns = []
 
     periods = [60, 120, 240, 360, 480]
@@ -223,17 +223,17 @@ def get_portfolio_returns(session):
             df['date'] = pd.to_datetime(df['date'])
             df.set_index('date', inplace=True)
             
-            # Resample to Monthly (Last) to normalize frequency
-            monthly_price = df['price'].resample('M').last()
+            # Resample to Monthly (Last) to normalize frequency - using 'ME' for future compatibility
+            monthly_price = df['price'].resample('ME').last()
             
             # Monthly returns
-            monthly_ret = monthly_price.pct_change().dropna()
+            monthly_ret = monthly_price.pct_change(fill_method=None).dropna()
             
             # Accumulate blended returns
             if blended_returns.empty:
                 blended_returns = monthly_ret * pct
             else:
-                # Align indices automatically
+                # Align indices automatically using the DatetimeIndex of both series
                 blended_returns = blended_returns.add(monthly_ret * pct, fill_value=0.0)
 
         if blended_returns.empty:
@@ -368,7 +368,7 @@ def get_portfolios_results(session):
     Build monthly blended portfolio wealth series for each portfolio.
     Returns list of lists of floats (Starting index 100.0).
     """
-    portfolios = session.query(Portfolios).all()
+    portfolios = session.query(Portfolios).order_by(Portfolios.id).all()
     all_results = []
 
     for portfolio in portfolios:

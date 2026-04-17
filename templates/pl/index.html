@@ -153,7 +153,7 @@
   async function loadPortfolios() {
     const tbody = document.getElementById('portfolio-tbody');
     try {
-      const res = await fetch(`/api/data?currency=${CURRENCY}`);
+      const res = await fetch(`/api/data?currency=${CURRENCY}&lang=pl`);
       rawData = await res.json();
       portfolioData = rawData;
       renderTable();
@@ -183,7 +183,7 @@
       if (inflationMode && !inflData.length) {
         // Leniwe ładowanie danych realnych przy pierwszym kliknięciu
         try {
-          const res = await fetch(`/api/data?currency=${CURRENCY}&inflation=true`);
+          const res = await fetch(`/api/data?currency=${CURRENCY}&inflation=true&lang=pl`);
           inflData = await res.json();
         } catch (e) {
           inflationMode = false;
