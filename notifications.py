@@ -34,6 +34,7 @@ class SystemNotifier:
         self._admin_email = os.getenv("ADMIN_EMAIL", "")
         self._whatsapp_api_key = os.getenv("CALLMEBOT_API_KEY", "")
         self._whatsapp_phone = os.getenv("MY_PHONE_NUMBER", "")
+        self._app_env = os.getenv("APP_ENV", "development")
 
     def _is_email_configured(self) -> bool:
         """Return True only when all required email credentials are present."""
@@ -44,7 +45,11 @@ class SystemNotifier:
         return bool(self._whatsapp_api_key and self._whatsapp_phone)
 
     def _send_whatsapp(self, message: str) -> bool:
-        """Sends a WhatsApp message via CallMeBot API."""
+        """Sends a WhatsApp message via CallMeBot API only in production."""
+        if self._app_env != "production":
+            logging.info("Non-production environment (%s) detected. WhatsApp alert skipped.", self._app_env)
+            return True
+
         if not self._is_whatsapp_configured():
             logging.warning("WhatsApp notification not configured. Skipping.")
             return False
