@@ -830,6 +830,61 @@
       gap: 6px;
       line-height: 1.5;
     }
+
+    /* ── SECTION TOP ROW (title + toggle) ───── */
+    .section-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      gap: 12px;
+    }
+    .section-top-row .section-heading {
+      margin-bottom: 0;
+    }
+
+    /* ── INFLATION TOGGLE ────────────────────── */
+    .inflation-toggle-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .inflation-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    /* Pill capsule — same family as .lang-switcher, but no text labels */
+    .inflation-switcher {
+      display: flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px;
+      width: 52px;
+      cursor: pointer;
+      transition: border-color var(--transition);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .inflation-switcher:hover {
+      border-color: rgba(0, 200, 150, 0.4);
+    }
+    .infl-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    }
+    .inflation-switcher.active .infl-thumb {
+      transform: translateX(20px);
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green-glow);
+    }
   </style>
 </head>
 

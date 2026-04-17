@@ -15,6 +15,7 @@ from dotenv import load_dotenv
 # Internal imports
 from models_v2 import db, Portfolios
 import helpers_v2 as helpers
+from scripts.sync_macro import run_sync as run_macro_sync
 
 # ── Setup & Configuration ───────────────────────────────────────────────────
 load_dotenv()
@@ -71,12 +72,32 @@ def update_job():
             logging.error('An error occurred in update_job(): %s', e, exc_info=True)
             helpers.update_error_email(e)
 
+def sync_macro_job():
+    """Sync macroeconomic data (CPI inflation + EUR/currency FX rates) from FRED."""
+    with flask_app.app_context():
+        session = db.session()
+        try:
+            logging.info("Starting background macro sync job...")
+            run_macro_sync(session)
+            logging.info("Background macro sync job completed.")
+        except Exception as e:
+            session.rollback()
+            logging.error('An error occurred in sync_macro_job(): %s', e, exc_info=True)
+        finally:
+            session.close()
+
 def start_scheduler():
     if not scheduler.running:
         # Run on the 10th of every month at 04:00 AM
         scheduler.add_job(
             func=update_job, 
             trigger=CronTrigger(day='10', hour='4'), 
+            misfire_grace_time=3600
+        )
+        # Macro data sync: 10th of every month at 05:00 AM (1h after ETF job)
+        scheduler.add_job(
+            func=sync_macro_job, 
+            trigger=CronTrigger(day='10', hour='5'), 
             misfire_grace_time=3600
         )
         scheduler.start()
@@ -183,17 +204,40 @@ def set_lang_cookie(response: Response, lang: str) -> None:
 
 # ── Business Logic Helpers ──────────────────────────────────────────────────
 
-def get_portfolio_data() -> list:
+def get_portfolio_data(currency: str = 'EUR') -> list:
+    """Return nominal CAGR portfolio data in the requested currency."""
     with flask_app.app_context():
         session = db.session()
         try:
             portfolios_list = session.query(Portfolios).all()
-            all_returns = helpers.get_portfolio_returns(session)
+            all_returns = helpers.get_portfolio_returns_in_currency(session, currency)
             return [
                 {
                     "name": portfolio.name,
                     "assets": int(portfolio.assets),
-                    "return5": float(round(returns[0], 2)),
+                    "return5":  float(round(returns[0], 2)),
+                    "return10": float(round(returns[1], 2)),
+                    "return20": float(round(returns[2], 2)),
+                    "return30": float(round(returns[3], 2)),
+                }
+                for portfolio, returns in zip(portfolios_list, all_returns)
+            ]
+        finally:
+            session.close()
+
+
+def get_real_portfolio_data(currency: str = 'EUR') -> list:
+    """Return inflation-adjusted (real) CAGR portfolio data in the requested currency."""
+    with flask_app.app_context():
+        session = db.session()
+        try:
+            portfolios_list = session.query(Portfolios).all()
+            all_returns = helpers.get_real_portfolio_returns(session, currency)
+            return [
+                {
+                    "name": portfolio.name,
+                    "assets": int(portfolio.assets),
+                    "return5":  float(round(returns[0], 2)),
                     "return10": float(round(returns[1], 2)),
                     "return20": float(round(returns[2], 2)),
                     "return30": float(round(returns[3], 2)),
@@ -258,8 +302,25 @@ async def en_about(request: Request):
 
 # API
 @app.get("/api/data")
-def get_data():
-    return get_portfolio_data()
+def get_data(inflation: bool = False, currency: str = "EUR"):
+    """
+    Return portfolio CAGR data as JSON.
+
+    Query parameters:
+      currency  : 'EUR' (default) or 'PLN'
+      inflation : false (default) — nominal CAGR
+                  true            — real CAGR adjusted for CPI inflation
+
+    Convention:
+      EN templates call with currency=EUR (default).
+      PL templates call with currency=PLN.
+    """
+    currency = currency.upper()
+    if currency not in ('EUR', 'PLN'):
+        currency = 'EUR'
+    if inflation:
+        return get_real_portfolio_data(currency)
+    return get_portfolio_data(currency)
 
 # SEO files
 @app.get("/robots.txt", response_class=Response)
@@ -306,4 +367,3 @@ async def sitemap():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5000)
-

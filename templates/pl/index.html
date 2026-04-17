@@ -51,7 +51,16 @@
 <!-- Comparison Table -->
 <section class="section" id="comparison">
   <div class="section-label">Narzędzie porównawcze</div>
-  <div class="section-heading">Roczne stopy zwrotu (CAGR)</div>
+  <div class="section-top-row">
+    <div class="section-heading">Roczne stopy zwrotu (CAGR)</div>
+    <div class="inflation-toggle-container">
+      <span class="inflation-label">Skoryguj o inflację</span>
+      <div class="inflation-switcher" id="inflation-toggle"
+           role="switch" aria-checked="false">
+        <span class="infl-thumb"></span>
+      </div>
+    </div>
+  </div>
 
   <div class="table-wrap">
     <table class="data-table">
@@ -74,9 +83,9 @@
     </table>
   </div>
 
-  <div class="info-note">
+  <div class="info-note" id="table-note">
     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
-    <span>Dane oparte na cenach ETF UCITS (rynki europejskie, EUR). CAGR zakłada reinwestycję dywidend (fundusze akumulujące). Wyniki historyczne nie są gwarancją przyszłych zwrotów.</span>
+    <span>Zwroty wyrażone w <strong>PLN</strong>. Dane oparte na cenach ETF UCITS (EUR), przeliczone na PLN wg historycznego kursu EUR/PLN. CAGR zakłada reinwestycję dywidend. Wyniki historyczne nie są gwarancją przyszłych zwrotów.</span>
   </div>
 </section>
 
@@ -144,10 +153,11 @@
   async function loadPortfolios() {
     const tbody = document.getElementById('portfolio-tbody');
     try {
-      const res = await fetch('/api/data');
-      portfolioData = await res.json();
+      const res = await fetch(`/api/data?currency=${CURRENCY}`);
+      rawData = await res.json();
+      portfolioData = rawData;
       renderTable();
-      
+
       document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
       });
@@ -156,6 +166,38 @@
       lucide.createIcons();
     }
   }
+  // ── Currency and inflation state ───────────────────────────────────────────
+  const CURRENCY = 'PLN';   // Ta wersja językowa zawsze używa PLN
+  let inflationMode = false;
+  let rawData = [];    // nominalne PLN — ładowane przy starcie
+  let inflData = [];   // realne PLN    — ładowane leniwie przy pierwszym kliknięciu
+
+  // ── Inflation toggle ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('inflation-toggle');
+    toggle.addEventListener('click', async () => {
+      inflationMode = !inflationMode;
+      toggle.classList.toggle('active', inflationMode);
+      toggle.setAttribute('aria-checked', String(inflationMode));
+
+      if (inflationMode && !inflData.length) {
+        // Leniwe ładowanie danych realnych przy pierwszym kliknięciu
+        try {
+          const res = await fetch(`/api/data?currency=${CURRENCY}&inflation=true`);
+          inflData = await res.json();
+        } catch (e) {
+          inflationMode = false;
+          toggle.classList.remove('active');
+          toggle.setAttribute('aria-checked', 'false');
+          return;
+        }
+      }
+
+      portfolioData = inflationMode ? inflData : rawData;
+      renderTable();
+    });
+  });
+
   document.addEventListener('DOMContentLoaded', loadPortfolios);
 </script>
 

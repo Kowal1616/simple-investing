@@ -5,11 +5,13 @@ A robust financial analysis tool designed to track and visualize long-term inves
 ## 🚀 Key Features
 
 * **Consensus Price Engine:** Aggregates financial information from multiple independent market data providers (e.g., Yahoo Finance, AlphaVantage) to ensure accuracy and reliability.
+* **Inflation-Adjusted Returns (Real CAGR):** Toggleable inflation correction using live CPI data from the FRED API, allowing users to see purchasing power performance.
+* **Multi-Currency Support (PLN/EUR):** Sophisticated currency translation logic that automatically adapts to the user's language (PL for PLN-based returns, EN for EUR-based), including historical EUR/PLN exchange rate impact.
 * **Long-term Strategy Backtesting:** Specialized in analyzing ETF performance and investment models over extended periods (up to 30 years).
-* **Monthly Data Integrity:** Automated background updates designed for long-term tracking, reducing noise from daily market volatility.
+* **Monthly Data Integrity:** Automated updates designed for long-term tracking, reducing noise from daily market volatility.
+* **Macroeconomic Sync:** Dedicated engine for fetching and caching global inflation rates and exchange rates.
 * **Modern & Responsive UI:** Custom dark-mode interface optimized for both desktop and mobile, with seamless PL/EN language switching.
 * **Automated CI/CD Pipeline:** Fully automated, "hands-off" deployments utilizing modern DevOps practices.
-
 ## 🛠 Tech Stack
 
 * **Backend:** Python / FastAPI / Gunicorn
@@ -41,7 +43,11 @@ A robust financial analysis tool designed to track and visualize long-term inves
 4. **Configure Environment Variables:**
    Create a `.env` file based on the `.env.example` provided:
    ```env
+   # API Keys
    ALPHAVANTAGE_API_KEY=your_api_key_here
+   ECONOMIC_DATA_PROVIDER_KEY=your_fred_api_key_here
+   
+   # Admin
    ADMIN_EMAIL=your_email@example.com
    # WhatsApp (CallMeBot)
    CALLMEBOT_API_KEY=your_callmebot_api_key
@@ -51,11 +57,26 @@ A robust financial analysis tool designed to track and visualize long-term inves
    NOTIFIER_SENDER_EMAIL=your_sender_email@example.com
    ```
 
-5. **Run the application locally:**
-   ```bash
-   uvicorn main:app --reload
-   ```
+## 🔄 Data Synchronization
 
+The application relies on automated scripts to keep data fresh and accurate:
+
+*   **ETF Prices:** Updated automatically via scheduler on the 10th of every month.
+*   **Macroeconomic Data:** Syncs annual CPI inflation and exchange rates from FRED. Can be run manually:
+    ```bash
+    python scripts/sync_macro.py
+    ```
+
+## 🚀 Running the Application
+
+For development with hot-reload:
+```bash
+uvicorn main:app --reload
+```
+For production:
+```bash
+gunicorn -c gunicorn_conf.py main:app
+```
 ## 🚀 Deployment & Production (CI/CD)
 
 The application runs on a production-ready containerized stack with a fully automated pipeline:
