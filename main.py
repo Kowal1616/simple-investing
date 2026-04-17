@@ -19,6 +19,8 @@ import helpers_v2 as helpers
 # ── Setup & Configuration ───────────────────────────────────────────────────
 load_dotenv()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_URL = "https://zenetfs.com"
+
 
 # Configure logging
 logging.basicConfig(level=logging.INFO,
@@ -202,7 +204,14 @@ def get_portfolio_data() -> list:
             session.close()
 
 def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
-    return {"request": request, "lang": lang, "active_page": active_page, **extra}
+    canonical_url = f"{BASE_URL}{request.url.path}"
+    return {
+        "request": request, 
+        "lang": lang, 
+        "active_page": active_page, 
+        "canonical_url": canonical_url,
+        **extra
+    }
 
 # ── Routes ──────────────────────────────────────────────────────────────────
 
@@ -260,7 +269,6 @@ async def robots_txt():
 
 @app.get("/sitemap.xml", response_class=Response)
 async def sitemap():
-    base_url = "https://zenetfs.com"
     pages = ["", "portfolios", "etfs", "about"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
     
@@ -269,8 +277,8 @@ async def sitemap():
     
     for page in pages:
         path = f"/{page}" if page else ""
-        pl_url = f"{base_url}/pl{path}"
-        en_url = f"{base_url}/en{path}"
+        pl_url = f"{BASE_URL}/pl{path}"
+        en_url = f"{BASE_URL}/en{path}"
         
         # PL entry
         xml.append('  <url>')

@@ -73,8 +73,12 @@ PROXY_CONFIG = {
         'proxy_ticker': 'xauusd',
         'note': 'XAUUSD gold spot — 200+ year history on stooq',
     },
+    'XDWT': {
+        'proxy_source': 'yfinance',
+        'proxy_ticker': '^NDX',
+        'note': 'Nasdaq 100 as proxy for historical MSCI World Info Tech (XDWT)',
+    },
     # SYBJ: FRED API stopped responding with CSV. Extrapolation will take over automatically.
-    # XDWT: real YF data goes back to 1985 — no proxy needed.
 }
 
 # ---------------------------------------------------------------------------
