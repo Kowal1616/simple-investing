@@ -95,8 +95,8 @@
 
 <script>
   let portfolioData = [];
-  let sortCol = null;
-  let sortAsc = true;
+  let sortCol = 'return30';
+  let sortAsc = false;
   const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
 
   function renderTable() {
@@ -129,9 +129,14 @@
       sortCol = colKey;
       sortAsc = true;
     }
+    applySort();
+  }
+
+  function applySort() {
+    if (!sortCol) return;
     portfolioData.sort((a, b) => {
-      let valA = parseFloat(a[colKey]);
-      let valB = parseFloat(b[colKey]);
+      let valA = parseFloat(a[sortCol]);
+      let valB = parseFloat(b[sortCol]);
       return sortAsc ? valA - valB : valB - valA;
     });
     renderTable();
@@ -156,7 +161,8 @@
       const res = await fetch(`/api/data?currency=${CURRENCY}&lang=pl`);
       rawData = await res.json();
       portfolioData = rawData;
-      renderTable();
+      
+      applySort();
 
       document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
@@ -194,7 +200,7 @@
       }
 
       portfolioData = inflationMode ? inflData : rawData;
-      renderTable();
+      applySort();
     });
   });
 
