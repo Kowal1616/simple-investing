@@ -10,6 +10,15 @@
   <meta name="robots" content="index, follow">
   <title>ZenETFs — {% block title %}{% endblock %}</title>
   <link rel="canonical" href="{{ canonical_url }}">
+  {% if request.url.path.startswith('/pl') %}
+  <link rel="alternate" hreflang="pl" href="{{ canonical_url }}">
+  <link rel="alternate" hreflang="en" href="{{ canonical_url | replace('/pl', '/en') }}">
+  <link rel="alternate" hreflang="x-default" href="{{ canonical_url | replace('/pl', '/en') }}">
+  {% elif request.url.path.startswith('/en') %}
+  <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
+  <link rel="alternate" hreflang="pl" href="{{ canonical_url | replace('/en', '/pl') }}">
+  <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
+  {% endif %}
 
 
   <!-- Favicons -->

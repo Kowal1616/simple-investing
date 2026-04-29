@@ -171,6 +171,30 @@ async def detect_language(request: Request) -> str:
     return "en"
 
 @app.middleware("http")
+async def https_www_redirect(request: Request, call_next):
+    """Redirect HTTP to HTTPS and www to non-www."""
+    host = request.headers.get("host", "")
+    scheme = request.url.scheme
+    needs_redirect = False
+    new_host = host
+
+    if host.startswith("www."):
+        new_host = host[4:]
+        needs_redirect = True
+    if scheme != "https":
+        scheme = "https"
+        needs_redirect = True
+
+    if needs_redirect:
+        new_url = f"https://{new_host}{request.url.path}"
+        if request.url.query:
+            new_url += f"?{request.url.query}"
+        return RedirectResponse(url=new_url, status_code=301)
+
+    response = await call_next(request)
+    return response
+
+@app.middleware("http")
 async def language_cookie_middleware(request: Request, call_next):
     path = request.url.path
     lang_from_path = None
@@ -268,8 +292,26 @@ def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
 
 @app.get("/", response_class=RedirectResponse)
 async def root(request: Request):
+    # Enforce HTTPS and non-www canonical domain
+    host = request.headers.get("host", "")
+    scheme = request.url.scheme
+    needs_redirect = False
+
+    if host.startswith("www."):
+        host = host[4:]
+        needs_redirect = True
+    if scheme != "https":
+        scheme = "https"
+        needs_redirect = True
+
+    if needs_redirect:
+        return RedirectResponse(
+            url=f"https://{host}/",
+            status_code=301
+        )
+
     lang = await detect_language(request)
-    response = RedirectResponse(url=f"/{lang}/", status_code=302)
+    response = RedirectResponse(url=f"/{lang}/", status_code=301)
     set_lang_cookie(response, lang)
     return response
 
