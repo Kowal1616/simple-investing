@@ -68,7 +68,8 @@
             ],
             server: {
                 url: '/api/data',
-                then: data => {
+                then: json => {
+                    const data = json.data;
                     // Round numerical values for returns to two decimal points
                     data.forEach(row => {
                         row.return5 = (row.return5);

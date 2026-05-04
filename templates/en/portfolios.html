@@ -49,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const isInflation = toggle.checked;
             const resp = await fetch(`/api/data?currency=EUR&lang=en&inflation=${isInflation}`);
-            const data = await resp.json();
+            const json = await resp.json();
+            const data = json.data;
             
             if (!data || data.length === 0) {
               container.innerHTML = '<div style="grid-column: 1/-1; text-align:center; padding: 40px; color: var(--text-muted);">No data available for the selected configuration.</div>';

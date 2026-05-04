@@ -87,6 +87,8 @@
     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
     <span>Returns in <strong>EUR</strong>. Based on European UCITS ETF prices. CAGR assumes dividend reinvestment (accumulating funds). Historical performance is not indicative of future results.</span>
   </div>
+
+  <div class="last-update-label" id="last-update"></div>
 </section>
 
 <style>
@@ -159,7 +161,8 @@
     const tbody = document.getElementById('portfolio-tbody');
     try {
       const res = await fetch(`/api/data?currency=${CURRENCY}&lang=en`);
-      rawData = await res.json();
+      const json = await res.json();
+      rawData = json.data;
       portfolioData = rawData;
       
       applySort();
@@ -167,6 +170,8 @@
       document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
       });
+
+      document.getElementById('last-update').textContent = `Last updated: ${json.lastUpdate}`;
     } catch(e) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Error loading data. Please refresh the page.</td></tr>';
       lucide.createIcons();
@@ -190,7 +195,8 @@
         // Lazy-load real (inflation-adjusted) data on first toggle
         try {
           const res = await fetch(`/api/data?currency=${CURRENCY}&inflation=true&lang=en`);
-          inflData = await res.json();
+          const json = await res.json();
+          inflData = json.data;
         } catch (e) {
           inflationMode = false;
           toggle.classList.remove('active');

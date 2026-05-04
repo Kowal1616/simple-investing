@@ -13,7 +13,7 @@ from apscheduler.schedulers.base import STATE_RUNNING
 from dotenv import load_dotenv
 
 # Internal imports
-from models_v2 import db, Portfolios
+from models_v2 import db, Portfolios, HistoricalDataEtfs
 import helpers_v2 as helpers
 from scripts.sync_macro import run_sync as run_macro_sync
 
@@ -226,6 +226,19 @@ def set_lang_cookie(response: Response, lang: str) -> None:
 
 # ── Business Logic Helpers ──────────────────────────────────────────────────
 
+def get_last_update_date() -> str:
+    """Return the most recent date in the HistoricalDataEtfs table as MM.YYYY."""
+    with flask_app.app_context():
+        session = db.session()
+        try:
+            row = session.query(HistoricalDataEtfs.date).order_by(HistoricalDataEtfs.date.desc()).first()
+            if row and row.date:
+                dt = datetime.strptime(row.date, "%Y-%m-%d")
+                return dt.strftime("%m.%Y")
+            return "—"
+        finally:
+            session.close()
+
 def get_portfolio_data(currency: str = 'EUR', lang: str = 'en') -> list:
     """Return nominal CAGR portfolio data in the requested currency, filtered by language."""
     with flask_app.app_context():
@@ -352,8 +365,10 @@ def get_data(inflation: bool = False, currency: str = "EUR", lang: str = "en"):
     if currency not in ('EUR', 'PLN'):
         currency = 'EUR'
     if inflation:
-        return get_real_portfolio_data(currency, lang)
-    return get_portfolio_data(currency, lang)
+        data = get_real_portfolio_data(currency, lang)
+    else:
+        data = get_portfolio_data(currency, lang)
+    return {"data": data, "lastUpdate": get_last_update_date()}
 
 # SEO files
 @app.get("/robots.txt", response_class=Response)
