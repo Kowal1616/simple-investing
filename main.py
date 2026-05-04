@@ -171,6 +171,19 @@ async def detect_language(request: Request) -> str:
     return "en"
 
 @app.middleware("http")
+async def trailing_slash_redirect(request: Request, call_next):
+    """Redirect /en or /pl to /en/ or /pl/ (add trailing slash for lang roots)."""
+    path = request.url.path
+    if path in ("/pl", "/en"):
+        new_url = f"{path}/"
+        if request.url.query:
+            new_url += f"?{request.url.query}"
+        return RedirectResponse(url=new_url, status_code=301)
+    response = await call_next(request)
+    return response
+
+
+@app.middleware("http")
 async def https_www_redirect(request: Request, call_next):
     """Redirect www to non-www. HTTPS is handled by Nginx Proxy Manager."""
     host = request.headers.get("host", "")
@@ -352,12 +365,13 @@ async def robots_txt():
 async def sitemap():
     pages = ["", "portfolios", "etfs", "about"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
-    
+
     xml = ['<?xml version="1.0" encoding="UTF-8"?>']
     xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
-    
+
     for page in pages:
-        path = f"/{page}" if page else ""
+        # Root paths need trailing slash, subpages don't (matching route definitions)
+        path = f"/{page}" if page else "/"
         pl_url = f"{BASE_URL}/pl{path}"
         en_url = f"{BASE_URL}/en{path}"
         
