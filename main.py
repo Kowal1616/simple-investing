@@ -357,12 +357,27 @@ def get_data(inflation: bool = False, currency: str = "EUR", lang: str = "en"):
 
 # SEO files
 @app.get("/robots.txt", response_class=Response)
-async def robots_txt():
+async def robots_txt(request: Request):
+    # Ensure canonical domain
+    host = request.headers.get("host", "")
+    if host.startswith("www."):
+        return RedirectResponse(
+            url=f"https://zenetfs.com/robots.txt",
+            status_code=301
+        )
     content = "User-agent: *\nAllow: /\nSitemap: https://zenetfs.com/sitemap.xml\n"
     return Response(content=content, media_type="text/plain")
 
 @app.get("/sitemap.xml", response_class=Response)
-async def sitemap():
+async def sitemap(request: Request):
+    # Ensure canonical domain
+    host = request.headers.get("host", "")
+    if host.startswith("www."):
+        return RedirectResponse(
+            url=f"https://zenetfs.com/sitemap.xml",
+            status_code=301
+        )
+
     pages = ["", "portfolios", "etfs", "about"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
 
