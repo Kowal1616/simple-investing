@@ -145,7 +145,8 @@
     const tbody = document.getElementById('portfolio-tbody');
     try {
       const res = await fetch('/api/data');
-      portfolioData = await res.json();
+      const json = await res.json();
+      portfolioData = json.data;
       renderTable();
       
       document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
