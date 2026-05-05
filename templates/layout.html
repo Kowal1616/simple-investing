@@ -17,9 +17,9 @@
   <meta property="og:title" content="{{ seo.og_title }}">
   <meta property="og:description" content="{{ seo.og_description }}">
   {% if lang == 'pl' %}
-  <meta property="og:image" content="{{ BASE_URL }}/static/og-pl.png">
+  <meta property="og:image" content="{{ BASE_URL }}/static/og_pl.png">
   {% else %}
-  <meta property="og:image" content="{{ BASE_URL }}/static/og-en.png">
+  <meta property="og:image" content="{{ BASE_URL }}/static/og_en.png">
   {% endif %}
   <meta property="og:locale" content="{{ 'pl_PL' if lang == 'pl' else 'en_US' }}">
   <meta property="og:type" content="website">
@@ -27,7 +27,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{{ seo.twitter_title if seo.twitter_title is defined else seo.og_title }}">
   <meta name="twitter:description" content="{{ seo.twitter_description if seo.twitter_description is defined else seo.og_description }}">
-  <meta name="twitter:image" content="{{ BASE_URL }}/static/{{ 'og-image-pl.png' if lang == 'pl' else 'og-image-en.png' }}">
+  <meta name="twitter:image" content="{{ BASE_URL }}/static/{{ 'og_pl.png' if lang == 'pl' else 'og_en.png' }}">
   {% endif %}
 
   <!-- JSON-LD Structured Data -->
