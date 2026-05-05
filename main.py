@@ -122,9 +122,9 @@ templates = Jinja2Templates(directory=templates_dir)
 SEO_MAP = {
     "en": {
         "index": {
-            "og_title": "ZenETFs — Compare ETF Portfolio Returns | 30-Year CAGR Data",
+            "og_title": "ZenETFs — Compare ETF Portfolio Returns | 30-Year CAGR Returns",
             "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years. Inflation-adjusted returns available.",
-            "twitter_title": "ZenETFs — Compare ETF Portfolio Returns | 30-Year CAGR Data",
+            "twitter_title": "ZenETFs — Compare ETF Portfolio Returns | 30-Year CAGR Returns",
             "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
         },
         "portfolios": {
