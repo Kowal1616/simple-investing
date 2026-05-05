@@ -15,7 +15,7 @@ app = FastAPI()
 
 # Setup absolute path references for prod reliability
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_URL = "https://zenetfs.com"
+BASE_URL = os.environ.get("BASE_URL", "https://zenetfs.com")
 
 # Mount static files if the directory exists
 static_dir = os.path.join(BASE_DIR, "static")
@@ -25,6 +25,75 @@ if os.path.isdir(static_dir):
 # Setup Jinja2 templates
 templates_dir = os.path.join(BASE_DIR, "templates")
 templates = Jinja2Templates(directory=templates_dir)
+
+# ── SEO Map ──────────────────────────────────────────────────────────────────
+
+SEO_MAP = {
+    "en": {
+        "index": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "portfolios": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "etfs": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "about": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "privacy": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+    },
+    "pl": {
+        "index": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "portfolios": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "etfs": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "about": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "privacy": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+    },
+}
 
 
 # ── Startup ──────────────────────────────────────────────────────────────────
@@ -96,18 +165,18 @@ async def language_cookie_middleware(request: Request, call_next):
 
     if lang_from_path:
         set_lang_cookie(response, lang_from_path)
-    
+
     return response
 
 
 def set_lang_cookie(response: Response, lang: str) -> None:
     # Always set path="/" so the cookie is available across the whole site
     response.set_cookie(
-        "lang", 
-        lang, 
-        max_age=60 * 60 * 24 * 365, 
-        path="/", 
-        samesite="lax"
+        "lang",
+        lang,
+        max_age=60 * 60 * 24 * 365,
+        path="/",
+        samesite="lax",
     )
 
 
@@ -135,7 +204,7 @@ def get_portfolio_data() -> list:
 
 
 def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
-    """Build a common template context dict."""
+    """Build a context dict for templates, including SEO data."""
     canonical_url = f"{BASE_URL}{request.url.path}"
     return {
         "request": request,
@@ -143,7 +212,8 @@ def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
         "active_page": active_page,
         "canonical_url": canonical_url,
         "BASE_URL": BASE_URL,
-        **extra
+        "seo_map": SEO_MAP,
+        **extra,
     }
 
 
@@ -239,9 +309,10 @@ def get_data():
     return get_portfolio_data()
 
 
+# ── Sitemap ───────────────────────────────────────────────────────────────────
+
 @app.get("/sitemap.xml", response_class=Response)
 async def sitemap(request: Request):
-    # Basic canonical redirect for www to non-www
     host = request.headers.get("host", "")
     if host.startswith("www."):
         return RedirectResponse(url=f"https://zenetfs.com/sitemap.xml", status_code=301)
@@ -249,8 +320,7 @@ async def sitemap(request: Request):
     pages = ["", "portfolios", "etfs", "about", "privacy"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
 
-    # Build base URL from request (supports localhost during dev)
-    base = str(request.base_url).rstrip('/')
+    base = str(request.base_url).rstrip("/")
     xml = ['<?xml version="1.0" encoding="UTF-8"?>']
     xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
 
@@ -259,21 +329,21 @@ async def sitemap(request: Request):
         pl_url = f"{base}/pl{path}"
         en_url = f"{base}/en{path}"
         # PL entry
-        xml.append('  <url>')
-        xml.append(f'    <loc>{pl_url}</loc>')
-        xml.append(f'    <lastmod>{date_now}</lastmod>')
-        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append("  <url>")
+        xml.append(f"    <loc>{pl_url}</loc>")
+        xml.append(f"    <lastmod>{date_now}</lastmod>")
+        xml.append("    <changefreq>weekly</changefreq>")
         xml.append(f'    <xhtml:link rel="alternate" hreflang="pl" href="{pl_url}"/>')
         xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
         xml.append(f'    <xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>')
-        xml.append('  </url>')
+        xml.append("  </url>")
         # EN entry
-        xml.append('  <url>')
-        xml.append(f'    <loc>{en_url}</loc>')
-        xml.append(f'    <lastmod>{date_now}</lastmod>')
-        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append("  <url>")
+        xml.append(f"    <loc>{en_url}</loc>")
+        xml.append(f"    <lastmod>{date_now}</lastmod>")
+        xml.append("    <changefreq>weekly</changefreq>")
         xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
-        xml.append('  </url>')
+        xml.append("  </url>")
 
-    xml.append('</urlset>')
+    xml.append("</urlset>")
     return Response("\n".join(xml), media_type="application/xml")
