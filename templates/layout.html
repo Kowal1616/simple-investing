@@ -10,16 +10,49 @@
   <meta name="robots" content="index, follow">
   <title>ZenETFs — {% block title %}{% endblock %}</title>
   <link rel="canonical" href="{{ canonical_url }}">
-  {% if request.url.path.startswith('/pl') %}
-  <link rel="alternate" hreflang="pl" href="{{ canonical_url }}">
-  <link rel="alternate" hreflang="en" href="{{ canonical_url | replace('/pl', '/en') }}">
-  <link rel="alternate" hreflang="x-default" href="{{ canonical_url | replace('/pl', '/en') }}">
-  {% elif request.url.path.startswith('/en') %}
-  <link rel="alternate" hreflang="en" href="{{ canonical_url }}">
-  <link rel="alternate" hreflang="pl" href="{{ canonical_url | replace('/en', '/pl') }}">
-  <link rel="alternate" hreflang="x-default" href="{{ canonical_url }}">
+
+  <!-- Open Graph & Twitter Card meta, language-aware -->
+  {% if seo_map is defined and seo_map.get(lang) %}
+  {% set seo = seo_map[lang].get(active_page, {}) %}
+  <meta property="og:title" content="{{ seo.og_title }}">
+  <meta property="og:description" content="{{ seo.og_description }}">
+  {% if lang == 'pl' %}
+  <meta property="og:image" content="{{ BASE_URL }}/static/og_pl.png">
+  {% else %}
+  <meta property="og:image" content="{{ BASE_URL }}/static/og_en.png">
+  {% endif %}
+  <meta property="og:locale" content="{{ 'pl_PL' if lang == 'pl' else 'en_US' }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="ZenETFs">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{{ seo.twitter_title if seo.twitter_title is defined else seo.og_title }}">
+  <meta name="twitter:description" content="{{ seo.twitter_description if seo.twitter_description is defined else seo.og_description }}">
+  <meta name="twitter:image" content="{{ BASE_URL }}/static/{{ 'og_pl.png' if lang == 'pl' else 'og_en.png' }}">
   {% endif %}
 
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "ZenETFs",
+    "url": "https://zenetfs.com",
+    "logo": "https://zenetfs.com/static/logo.webp",
+    "sameAs": []
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "url": "https://zenetfs.com",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "https://zenetfs.com/en/?s={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
 
   <!-- Favicons -->
   <link rel="icon" href="/static/favicon.webp" type="image/webp">
@@ -398,13 +431,11 @@
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
+      overflow: hidden;
     }
 
     .data-table {
       width: 100%;
-      min-width: 650px;
       border-collapse: collapse;
       font-size: 14px;
     }
@@ -490,95 +521,6 @@
       background: rgba(244, 63, 94, 0.12); /* rose-500 dim */
       color: #f43f5e; /* rose-500 */
       border-color: rgba(244, 63, 94, 0.18);
-    }
-
-    /* ── TOGGLE SWITCH ──────────────────────── */
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 32px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 40px;
-      width: fit-content;
-      transform-origin: left;
-      transition: transform var(--transition);
-    }
-
-    .toggle-container:hover {
-      transform: scale(1.02);
-    }
-
-    .switch {
-      position: relative;
-      display: inline-block;
-      width: 44px;
-      height: 24px;
-    }
-
-    .switch input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      inset: 0;
-      background-color: var(--surface-2);
-      transition: .3s;
-      border-radius: 24px;
-      border: 1px solid var(--border);
-    }
-
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background-color: var(--text-muted);
-      transition: .3s;
-      border-radius: 50%;
-    }
-
-    input:checked + .slider {
-      background-color: var(--green-dim);
-      border-color: var(--green);
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(20px);
-      background-color: var(--green);
-      box-shadow: 0 0 8px var(--green-glow);
-    }
-
-    .toggle-label {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      transition: color var(--transition);
-    }
-
-    input:checked ~ .toggle-label {
-      color: var(--text);
-    }
-
-    /* ── LOADING SKELETON ───────────────────── */
-    .skeleton {
-      background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
-      background-size: 200% 100%;
-      animation: skeleton-loading 1.5s infinite;
-      border-radius: 4px;
-    }
-
-    @keyframes skeleton-loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
     }
 
     /* ── PORTFOLIO CARDS ────────────────────── */
@@ -799,6 +741,24 @@
       line-height: 1.6;
     }
 
+    /* Privacy policy article */
+    .privacy-article .about-card h2 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .privacy-article .about-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .privacy-article .about-card ul li {
+      margin-bottom: 4px;
+    }
+
     /* Page hero (inner pages) */
     .page-hero {
       padding: 50px 40px 32px;
@@ -928,72 +888,7 @@
       gap: 6px;
       line-height: 1.5;
     }
-
-    /* ── SECTION TOP ROW (title + toggle) ───── */
-    .section-top-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      gap: 12px;
-    }
-    .section-top-row .section-heading {
-      margin-bottom: 0;
-    }
-
-    /* ── INFLATION TOGGLE ────────────────────── */
-    .inflation-toggle-container {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .inflation-label {
-      font-size: 12px;
-      color: var(--text-muted);
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .last-update-label {
-      font-size: 12px;
-      color: var(--text);
-      font-weight: 500;
-      letter-spacing: 0.03em;
-      margin-top: 2px;
-      margin-bottom: 20px;
-    }
-    /* Pill capsule — same family as .lang-switcher, but no text labels */
-    .inflation-switcher {
-      display: flex;
-      align-items: center;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 4px;
-      width: 52px;
-      cursor: pointer;
-      transition: border-color var(--transition);
-      flex-shrink: 0;
-      position: relative;
-    }
-    .inflation-switcher:hover {
-      border-color: rgba(0, 200, 150, 0.4);
-    }
-    .infl-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: var(--text-muted);
-      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
-    }
-    .inflation-switcher.active .infl-thumb {
-      transform: translateX(20px);
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green-glow);
-    }
   </style>
-
-  <script defer src="https://stats.zenetfs.com/script.js" data-website-id="7f78e5d4-6dca-49d0-afe2-c574ad866873"></script>
 </head>
 
 <body>
@@ -1028,12 +923,12 @@
       </ul>
 
       <!-- Language switcher -->
-      <div class="lang-switcher">
+      <nav class="lang-switcher" aria-label="Language switcher">
         <a href="/pl{{ request.url.path | replace('/pl', '') | replace('/en', '') }}"
           class="lang-btn {% if lang == 'pl' %}active{% endif %}">PL</a>
         <a href="/en{{ request.url.path | replace('/pl', '') | replace('/en', '') }}"
           class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
-      </div>
+      </nav>
 
       <!-- Mobile toggle -->
       <button class="nav-toggle" id="nav-toggle" aria-label="Menu"
@@ -1063,6 +958,9 @@
         {% endif %}
       </p>
       <div class="footer-brand">
+        <a href="/{{ lang | default('en') }}/privacy" style="color:var(--text-muted);text-decoration:none;font-size:13px;margin-right:16px;">
+          {% if lang == 'pl' %}Polityka prywatności{% else %}Privacy Policy{% endif %}
+        </a>
         <img src="/static/logo.webp" alt="ZenETFs Logo" width="16" height="16" style="margin-right: 2px;">
         <span style="font-weight: 700;"><span style="color: var(--text);">Zen</span><span style="color: var(--green);">ETFs</span></span> &copy; 2026
       </div>

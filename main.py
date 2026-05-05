@@ -3,6 +3,7 @@ import httpx
 import logging
 from datetime import datetime
 from fastapi import FastAPI, Request, Response
+from datetime import datetime
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -20,7 +21,7 @@ from scripts.sync_macro import run_sync as run_macro_sync
 # ── Setup & Configuration ───────────────────────────────────────────────────
 load_dotenv(override=True)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-BASE_URL = "https://zenetfs.com"
+BASE_URL = os.environ.get("BASE_URL", "https://zenetfs.com")
 
 
 # Configure logging
@@ -115,7 +116,92 @@ if os.path.isdir(static_dir):
 templates_dir = os.path.join(BASE_DIR, "templates")
 templates = Jinja2Templates(directory=templates_dir)
 
+
+# ── SEO Map ──────────────────────────────────────────────────────────────────
+
+SEO_MAP = {
+    "en": {
+        "index": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "portfolios": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "etfs": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "about": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+        "privacy": {
+            "og_title": "Easy ETF investing",
+            "og_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+            "twitter_title": "Easy ETF investing",
+            "twitter_description": "Compare long-term ETF portfolio strategies for European investors. CAGR returns for 5, 10, 20 and 30 years.",
+        },
+    },
+    "pl": {
+        "index": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "portfolios": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "etfs": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "about": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+        "privacy": {
+            "og_title": "Proste inwestowanie w ETFy",
+            "og_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+            "twitter_title": "Proste inwestowanie w ETFy",
+            "twitter_description": "Porównanie długoterminowych wyników strategii portfeli ETF dla polskich inwestorów. Zwroty CAGR za 5, 10, 20 i 30 lat.",
+        },
+    },
+}
+
+
 # ── FastAPI Lifecycle ──────────────────────────────────────────────────────
+
+
+@app.on_event("startup")
+def startup_event():
+    with flask_app.app_context():
+        db.engine.connect()
+        print("Database connected successfully using Flask context.")
+
+
+@app.on_event("shutdown")
+def shutdown_event():
+    with flask_app.app_context():
+        db.engine.dispose()
+        print("Database connection closed.")
 @app.on_event("startup")
 async def startup_event():
     # Verify DB connectivity
@@ -212,16 +298,16 @@ async def language_cookie_middleware(request: Request, call_next):
 
     if lang_from_path:
         set_lang_cookie(response, lang_from_path)
-    
+
     return response
 
 def set_lang_cookie(response: Response, lang: str) -> None:
     response.set_cookie(
-        "lang", 
-        lang, 
-        max_age=60 * 60 * 24 * 365, 
-        path="/", 
-        samesite="lax"
+        "lang",
+        lang,
+        max_age=60 * 60 * 24 * 365,
+        path="/",
+        samesite="lax",
     )
 
 # ── Business Logic Helpers ──────────────────────────────────────────────────
@@ -297,13 +383,16 @@ def get_real_portfolio_data(currency: str = 'EUR', lang: str = 'en') -> list:
             session.close()
 
 def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
+    """Build a context dict for templates, including SEO data."""
     canonical_url = f"{BASE_URL}{request.url.path}"
     return {
-        "request": request, 
-        "lang": lang, 
-        "active_page": active_page, 
+        "request": request,
+        "lang": lang,
+        "active_page": active_page,
         "canonical_url": canonical_url,
-        **extra
+        "BASE_URL": BASE_URL,
+        "seo_map": SEO_MAP,
+        **extra,
     }
 
 # ── Routes ──────────────────────────────────────────────────────────────────
@@ -331,12 +420,25 @@ async def pl_etfs(request: Request):
 
 @app.get("/pl/about", response_class=HTMLResponse)
 async def pl_about(request: Request):
-    return templates.TemplateResponse(request, "pl/about.html", ctx(request, "pl", "about"))
+    return templates.TemplateResponse(
+        request, "pl/about.html", ctx(request, "pl", "about")
+    )
 
-# English routes
+
+@app.get("/pl/privacy", response_class=HTMLResponse)
+async def pl_privacy(request: Request):
+    return templates.TemplateResponse(
+        request, "pl/privacy.html", ctx(request, "pl", "privacy")
+    )
+
+
+# ── English routes (/en/) ─────────────────────────────────────────────────────
+
 @app.get("/en/", response_class=HTMLResponse)
 async def en_index(request: Request):
-    return templates.TemplateResponse(request, "en/index.html", ctx(request, "en", "index"))
+    return templates.TemplateResponse(
+        request, "en/index.html", ctx(request, "en", "index")
+    )
 
 @app.get("/en/portfolios", response_class=HTMLResponse)
 async def en_portfolios(request: Request):
@@ -348,7 +450,19 @@ async def en_etfs(request: Request):
 
 @app.get("/en/about", response_class=HTMLResponse)
 async def en_about(request: Request):
-    return templates.TemplateResponse(request, "en/about.html", ctx(request, "en", "about"))
+    return templates.TemplateResponse(
+        request, "en/about.html", ctx(request, "en", "about")
+    )
+
+
+@app.get("/en/privacy", response_class=HTMLResponse)
+async def en_privacy(request: Request):
+    return templates.TemplateResponse(
+        request, "en/privacy.html", ctx(request, "en", "privacy")
+    )
+
+
+# ── API ───────────────────────────────────────────────────────────────────────
 
 @app.get("/api/data")
 def get_data(inflation: bool = False, currency: str = "EUR", lang: str = "en"):
@@ -370,10 +484,11 @@ def get_data(inflation: bool = False, currency: str = "EUR", lang: str = "en"):
         data = get_portfolio_data(currency, lang)
     return {"data": data, "lastUpdate": get_last_update_date()}
 
-# SEO files
+
+# ── SEO Files ─────────────────────────────────────────────────────────────────
+
 @app.get("/robots.txt", response_class=Response)
 async def robots_txt(request: Request):
-    # Ensure canonical domain
     host = request.headers.get("host", "")
     if host.startswith("www."):
         return RedirectResponse(
@@ -383,50 +498,48 @@ async def robots_txt(request: Request):
     content = "User-agent: *\nAllow: /\nSitemap: https://zenetfs.com/sitemap.xml\n"
     return Response(content=content, media_type="text/plain")
 
+
+# ── Sitemap ───────────────────────────────────────────────────────────────────
+
 @app.get("/sitemap.xml", response_class=Response)
 async def sitemap(request: Request):
-    # Ensure canonical domain
     host = request.headers.get("host", "")
     if host.startswith("www."):
-        return RedirectResponse(
-            url=f"https://zenetfs.com/sitemap.xml",
-            status_code=301
-        )
+        return RedirectResponse(url=f"https://zenetfs.com/sitemap.xml", status_code=301)
 
-    pages = ["", "portfolios", "etfs", "about"]
+    pages = ["", "portfolios", "etfs", "about", "privacy"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
 
+    base = str(request.base_url).rstrip("/")
     xml = ['<?xml version="1.0" encoding="UTF-8"?>']
     xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
 
     for page in pages:
-        # Root paths need trailing slash, subpages don't (matching route definitions)
         path = f"/{page}" if page else "/"
-        pl_url = f"{BASE_URL}/pl{path}"
-        en_url = f"{BASE_URL}/en{path}"
-        
+        pl_url = f"{base}/pl{path}"
+        en_url = f"{base}/en{path}"
         # PL entry
-        xml.append('  <url>')
-        xml.append(f'    <loc>{pl_url}</loc>')
-        xml.append(f'    <lastmod>{date_now}</lastmod>')
-        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append("  <url>")
+        xml.append(f"    <loc>{pl_url}</loc>")
+        xml.append(f"    <lastmod>{date_now}</lastmod>")
+        xml.append("    <changefreq>weekly</changefreq>")
         xml.append(f'    <xhtml:link rel="alternate" hreflang="pl" href="{pl_url}"/>')
         xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
         xml.append(f'    <xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>')
-        xml.append('  </url>')
-        
+        xml.append("  </url>")
         # EN entry
-        xml.append('  <url>')
-        xml.append(f'    <loc>{en_url}</loc>')
-        xml.append(f'    <lastmod>{date_now}</lastmod>')
-        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append("  <url>")
+        xml.append(f"    <loc>{en_url}</loc>")
+        xml.append(f"    <lastmod>{date_now}</lastmod>")
+        xml.append("    <changefreq>weekly</changefreq>")
         xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
         xml.append(f'    <xhtml:link rel="alternate" hreflang="pl" href="{pl_url}"/>')
         xml.append(f'    <xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>')
-        xml.append('  </url>')
+        xml.append("  </url>")
 
-    xml.append('</urlset>')
+    xml.append("</urlset>")
     return Response(content="\n".join(xml), media_type="application/xml")
+
 
 if __name__ == "__main__":
     import uvicorn

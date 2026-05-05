@@ -25,42 +25,33 @@
 </section>
 
 <!-- Stats -->
-<div class="stats-bar">
-  <div class="stat-card">
+<section class="stats-bar" aria-label="Key statistics">
+  <article class="stat-card">
     <div class="stat-icon"><i data-lucide="calendar" style="width:22px;height:22px;"></i></div>
     <div class="stat-value">30</div>
     <div class="stat-label">years of data</div>
-  </div>
-  <div class="stat-card">
+  </article>
+  <article class="stat-card">
     <div class="stat-icon"><i data-lucide="briefcase" style="width:22px;height:22px;"></i></div>
     <div class="stat-value">6</div>
     <div class="stat-label">portfolios</div>
-  </div>
-  <div class="stat-card">
+  </article>
+  <article class="stat-card">
     <div class="stat-icon"><i data-lucide="trending-up" style="width:22px;height:22px;"></i></div>
     <div class="stat-value">CAGR</div>
     <div class="stat-label">methodology</div>
-  </div>
-  <div class="stat-card">
+  </article>
+  <article class="stat-card">
     <div class="stat-icon"><i data-lucide="shield-check" style="width:22px;height:22px;"></i></div>
     <div class="stat-value" style="font-size: 20px;">UCITS</div>
     <div class="stat-label">european etfs</div>
-  </div>
-</div>
+  </article>
+</section>
 
 <!-- Comparison Table -->
 <section class="section" id="comparison">
   <div class="section-label">Comparison Tool</div>
-  <div class="section-top-row">
-    <div class="section-heading">Annual Returns (CAGR)</div>
-    <div class="inflation-toggle-container">
-      <span class="inflation-label">Adjust for EUR inflation</span>
-      <div class="inflation-switcher" id="inflation-toggle"
-           role="switch" aria-checked="false">
-        <span class="infl-thumb"></span>
-      </div>
-    </div>
-  </div>
+  <h2 class="section-heading">Annual Returns (CAGR)</h2>
 
   <div class="table-wrap">
     <table class="data-table">
@@ -83,12 +74,10 @@
     </table>
   </div>
 
-  <div class="info-note" id="table-note">
+  <div class="info-note">
     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
-    <span>Returns in <strong>EUR</strong>. Based on European UCITS ETF prices. CAGR assumes dividend reinvestment (accumulating funds). Historical performance is not indicative of future results.</span>
+    <span>Based on European UCITS ETF prices (EUR). CAGR assumes dividend reinvestment (accumulating funds). Historical performance is not indicative of future results.</span>
   </div>
-
-  <div class="last-update-label" id="last-update"></div>
 </section>
 
 <style>
@@ -97,8 +86,8 @@
 
 <script>
   let portfolioData = [];
-  let sortCol = 'return30';
-  let sortAsc = false;
+  let sortCol = null;
+  let sortAsc = true;
   const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
 
   function renderTable() {
@@ -131,14 +120,9 @@
       sortCol = colKey;
       sortAsc = true;
     }
-    applySort();
-  }
-
-  function applySort() {
-    if (!sortCol) return;
     portfolioData.sort((a, b) => {
-      let valA = parseFloat(a[sortCol]);
-      let valB = parseFloat(b[sortCol]);
+      let valA = parseFloat(a[colKey]);
+      let valB = parseFloat(b[colKey]);
       return sortAsc ? valA - valB : valB - valA;
     });
     renderTable();
@@ -160,56 +144,18 @@
   async function loadPortfolios() {
     const tbody = document.getElementById('portfolio-tbody');
     try {
-      const res = await fetch(`/api/data?currency=${CURRENCY}&lang=en`);
-      const json = await res.json();
-      rawData = json.data;
-      portfolioData = rawData;
+      const res = await fetch('/api/data');
+      portfolioData = await res.json();
+      renderTable();
       
-      applySort();
-
       document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
       });
-
-      document.getElementById('last-update').textContent = `Last updated: ${json.lastUpdate}`;
     } catch(e) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Error loading data. Please refresh the page.</td></tr>';
       lucide.createIcons();
     }
   }
-  // ── Currency and inflation state ───────────────────────────────────────────
-  const CURRENCY = 'EUR';   // This template always uses EUR
-  let inflationMode = false;
-  let rawData = [];    // nominal EUR — loaded on page init
-  let inflData = [];   // real EUR    — lazy-loaded on first toggle
-
-  // ── Inflation toggle ────────────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', () => {
-    const toggle = document.getElementById('inflation-toggle');
-    toggle.addEventListener('click', async () => {
-      inflationMode = !inflationMode;
-      toggle.classList.toggle('active', inflationMode);
-      toggle.setAttribute('aria-checked', String(inflationMode));
-
-      if (inflationMode && !inflData.length) {
-        // Lazy-load real (inflation-adjusted) data on first toggle
-        try {
-          const res = await fetch(`/api/data?currency=${CURRENCY}&inflation=true&lang=en`);
-          const json = await res.json();
-          inflData = json.data;
-        } catch (e) {
-          inflationMode = false;
-          toggle.classList.remove('active');
-          toggle.setAttribute('aria-checked', 'false');
-          return;
-        }
-      }
-
-      portfolioData = inflationMode ? inflData : rawData;
-      applySort();
-    });
-  });
-
   document.addEventListener('DOMContentLoaded', loadPortfolios);
 </script>
 
