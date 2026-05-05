@@ -1,6 +1,7 @@
 import os
 import httpx
 from fastapi import FastAPI, Request, Response
+from datetime import datetime
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -14,6 +15,7 @@ app = FastAPI()
 
 # Setup absolute path references for prod reliability
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_URL = "https://zenetfs.com"
 
 # Mount static files if the directory exists
 static_dir = os.path.join(BASE_DIR, "static")
@@ -134,7 +136,15 @@ def get_portfolio_data() -> list:
 
 def ctx(request: Request, lang: str, active_page: str, **extra) -> dict:
     """Build a common template context dict."""
-    return {"request": request, "lang": lang, "active_page": active_page, **extra}
+    canonical_url = f"{BASE_URL}{request.url.path}"
+    return {
+        "request": request,
+        "lang": lang,
+        "active_page": active_page,
+        "canonical_url": canonical_url,
+        "BASE_URL": BASE_URL,
+        **extra
+    }
 
 
 # ── Root redirect ─────────────────────────────────────────────────────────────
@@ -227,3 +237,43 @@ async def en_privacy(request: Request):
 def get_data():
     """Return portfolio data as JSON for the comparison table."""
     return get_portfolio_data()
+
+
+@app.get("/sitemap.xml", response_class=Response)
+async def sitemap(request: Request):
+    # Basic canonical redirect for www to non-www
+    host = request.headers.get("host", "")
+    if host.startswith("www."):
+        return RedirectResponse(url=f"https://zenetfs.com/sitemap.xml", status_code=301)
+
+    pages = ["", "portfolios", "etfs", "about", "privacy"]
+    date_now = datetime.utcnow().strftime("%Y-%m-%d")
+
+    # Build base URL from request (supports localhost during dev)
+    base = str(request.base_url).rstrip('/')
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>']
+    xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
+
+    for page in pages:
+        path = f"/{page}" if page else "/"
+        pl_url = f"{base}/pl{path}"
+        en_url = f"{base}/en{path}"
+        # PL entry
+        xml.append('  <url>')
+        xml.append(f'    <loc>{pl_url}</loc>')
+        xml.append(f'    <lastmod>{date_now}</lastmod>')
+        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="pl" href="{pl_url}"/>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="x-default" href="{en_url}"/>')
+        xml.append('  </url>')
+        # EN entry
+        xml.append('  <url>')
+        xml.append(f'    <loc>{en_url}</loc>')
+        xml.append(f'    <lastmod>{date_now}</lastmod>')
+        xml.append('    <changefreq>weekly</changefreq>')
+        xml.append(f'    <xhtml:link rel="alternate" hreflang="en" href="{en_url}"/>')
+        xml.append('  </url>')
+
+    xml.append('</urlset>')
+    return Response("\n".join(xml), media_type="application/xml")
