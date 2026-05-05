@@ -177,6 +177,13 @@ async def pl_about(request: Request):
     )
 
 
+@app.get("/pl/privacy", response_class=HTMLResponse)
+async def pl_privacy(request: Request):
+    return templates.TemplateResponse(
+        request, "pl/privacy.html", ctx(request, "pl", "privacy")
+    )
+
+
 # ── English routes (/en/) ─────────────────────────────────────────────────────
 
 @app.get("/en/", response_class=HTMLResponse)
@@ -204,6 +211,13 @@ async def en_etfs(request: Request):
 async def en_about(request: Request):
     return templates.TemplateResponse(
         request, "en/about.html", ctx(request, "en", "about")
+    )
+
+
+@app.get("/en/privacy", response_class=HTMLResponse)
+async def en_privacy(request: Request):
+    return templates.TemplateResponse(
+        request, "en/privacy.html", ctx(request, "en", "privacy")
     )
 
 

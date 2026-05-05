@@ -697,6 +697,24 @@
       line-height: 1.6;
     }
 
+    /* Privacy policy article */
+    .privacy-article .about-card h2 {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .privacy-article .about-card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.7;
+    }
+
+    .privacy-article .about-card ul li {
+      margin-bottom: 4px;
+    }
+
     /* Page hero (inner pages) */
     .page-hero {
       padding: 50px 40px 32px;
@@ -896,6 +914,9 @@
         {% endif %}
       </p>
       <div class="footer-brand">
+        <a href="/{{ lang | default('en') }}/privacy" style="color:var(--text-muted);text-decoration:none;font-size:13px;margin-right:16px;">
+          {% if lang == 'pl' %}Polityka prywatności{% else %}Privacy Policy{% endif %}
+        </a>
         <img src="/static/logo.webp" alt="ZenETFs Logo" width="16" height="16" style="margin-right: 2px;">
         <span style="font-weight: 700;"><span style="color: var(--text);">Zen</span><span style="color: var(--green);">ETFs</span></span> &copy; 2026
       </div>
