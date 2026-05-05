@@ -879,12 +879,12 @@
       </ul>
 
       <!-- Language switcher -->
-      <div class="lang-switcher">
+      <nav class="lang-switcher" aria-label="Language switcher">
         <a href="/pl{{ request.url.path | replace('/pl', '') | replace('/en', '') }}"
           class="lang-btn {% if lang == 'pl' %}active{% endif %}">PL</a>
         <a href="/en{{ request.url.path | replace('/pl', '') | replace('/en', '') }}"
           class="lang-btn {% if lang == 'en' %}active{% endif %}">EN</a>
-      </div>
+      </nav>
 
       <!-- Mobile toggle -->
       <button class="nav-toggle" id="nav-toggle" aria-label="Menu"
