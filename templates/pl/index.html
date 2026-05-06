@@ -51,7 +51,16 @@
 <!-- Comparison Table -->
 <section class="section" id="comparison">
   <div class="section-label">Narzędzie porównawcze</div>
-  <h2 class="section-heading">Roczne stopy zwrotu (CAGR)</h2>
+  <div class="section-top-row">
+    <div class="section-heading">Roczne stopy zwrotu (CAGR)</div>
+    <div class="inflation-toggle-container">
+      <span class="inflation-label">Skoryguj o inflację</span>
+      <div class="inflation-switcher" id="inflation-toggle"
+           role="switch" aria-checked="false">
+        <span class="infl-thumb"></span>
+      </div>
+    </div>
+  </div>
 
   <div class="table-wrap">
     <table class="data-table">
@@ -78,6 +87,8 @@
     <i data-lucide="info" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
     <span>Dane oparte na cenach ETF UCITS (rynki europejskie, EUR). CAGR zakłada reinwestycję dywidend (fundusze akumulujące). Wyniki historyczne nie są gwarancją przyszłych zwrotów.</span>
   </div>
+
+  <div class="last-update-label" id="last-update"></div>
 </section>
 
 <style>
@@ -86,8 +97,8 @@
 
 <script>
   let portfolioData = [];
-  let sortCol = null;
-  let sortAsc = true;
+  let sortCol = 'return30';
+  let sortAsc = false;
   const colors = ['#4A90E2','#a78bfa','#00C896','#f59e0b','#f97316','#fbbf24'];
 
   function renderTable() {
@@ -120,9 +131,14 @@
       sortCol = colKey;
       sortAsc = true;
     }
+    applySort();
+  }
+
+  function applySort() {
+    if (!sortCol) return;
     portfolioData.sort((a, b) => {
-      let valA = parseFloat(a[colKey]);
-      let valB = parseFloat(b[colKey]);
+      let valA = parseFloat(a[sortCol]);
+      let valB = parseFloat(b[sortCol]);
       return sortAsc ? valA - valB : valB - valA;
     });
     renderTable();
@@ -144,19 +160,57 @@
   async function loadPortfolios() {
     const tbody = document.getElementById('portfolio-tbody');
     try {
-      const res = await fetch('/api/data');
+      const res = await fetch(`/api/data?currency=${CURRENCY}&lang=pl`);
       const json = await res.json();
-      portfolioData = json.data;
-      renderTable();
+      rawData = json.data;
+      portfolioData = rawData;
+      
+      applySort();
       
       document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
         th.addEventListener('click', () => sortData(th.getAttribute('data-sort')));
       });
+
+      document.getElementById('last-update').textContent = `Ostatnia aktualizacja: ${json.lastUpdate}`;
     } catch(e) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-muted);">Błąd ładowania danych. Odśwież stronę.</td></tr>';
       lucide.createIcons();
     }
   }
+
+  // ── Currency and inflation state ───────────────────────────────────────────
+  const CURRENCY = 'PLN';   // Ta wersja językowa zawsze używa PLN
+  let inflationMode = false;
+  let rawData = [];    // nominalne PLN — ładowane przy starcie
+  let inflData = [];   // realne PLN    — ładowane leniwie przy pierwszym kliknięciu
+
+  // ── Inflation toggle ────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('inflation-toggle');
+    toggle.addEventListener('click', async () => {
+      inflationMode = !inflationMode;
+      toggle.classList.toggle('active', inflationMode);
+      toggle.setAttribute('aria-checked', String(inflationMode));
+
+      if (inflationMode && !inflData.length) {
+        // Leniwe ładowanie danych realnych przy pierwszym kliknięciu
+        try {
+          const res = await fetch(`/api/data?currency=${CURRENCY}&inflation=true&lang=pl`);
+          const json = await res.json();
+          inflData = json.data;
+        } catch (e) {
+          inflationMode = false;
+          toggle.classList.remove('active');
+          toggle.setAttribute('aria-checked', 'false');
+          return;
+        }
+      }
+
+      portfolioData = inflationMode ? inflData : rawData;
+      applySort();
+    });
+  });
+
   document.addEventListener('DOMContentLoaded', loadPortfolios);
 </script>
 
