@@ -510,7 +510,7 @@ async def sitemap(request: Request):
     pages = ["", "portfolios", "etfs", "about", "privacy"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
 
-    base = str(request.base_url).rstrip("/")
+    base = BASE_URL.rstrip("/")
     xml = ['<?xml version="1.0" encoding="UTF-8"?>']
     xml.append('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">')
 

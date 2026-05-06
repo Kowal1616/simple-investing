@@ -16,11 +16,7 @@
   {% set seo = seo_map[lang].get(active_page, {}) %}
   <meta property="og:title" content="{{ seo.og_title }}">
   <meta property="og:description" content="{{ seo.og_description }}">
-  {% if lang == 'pl' %}
-  <meta property="og:image" content="{{ BASE_URL }}/static/og_pl.png">
-  {% else %}
-  <meta property="og:image" content="{{ BASE_URL }}/static/og_en.png">
-  {% endif %}
+  <meta property="og:image" content="{{ BASE_URL }}/static/{{ 'og_pl.png' if lang == 'pl' else 'og_en.png' }}">
   <meta property="og:locale" content="{{ 'pl_PL' if lang == 'pl' else 'en_US' }}">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="ZenETFs">
