@@ -140,6 +140,7 @@ def copy_static_data():
             currency=row.currency,
             yfinance_name=row.yfinance_name,
             alphavantage_name=row.alphavantage_name,
+            external_ticker=row.yfinance_name,
         ))
 
     # --- Portfolios ---

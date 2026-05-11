@@ -63,7 +63,9 @@ class Etfs(db.Model):
     isin = db.Column(db.String, nullable=False)
     asset_type = db.Column(db.String, nullable=False)
     currency = db.Column(db.String, nullable=False)
-    external_ticker = db.Column(db.String, nullable=False)
+    yfinance_name = db.Column(db.String, nullable=True)
+    alphavantage_name = db.Column(db.String, nullable=True)
+    external_ticker = db.Column(db.String, nullable=True)
 
 
 class HistoricalDataEtfs(db.Model):
