@@ -59,25 +59,29 @@ PROXY_CONFIG = {
     },
     'IUSQ': {
         'proxy_source': 'yfinance',
-        'proxy_ticker': '^GSPC',
-        'note': 'S&P 500 as proxy for historical ACWI (since original lacked data)',
+        'proxy_ticker': 'URTH',
+        'note': 'URTH as proxy for historical ACWI',
     },
     'EUNL': {
         'proxy_source': 'yfinance',
-        'proxy_ticker': '^GSPC',
-        'note': 'S&P 500 as proxy for historical MSCI World (since original lacked data)',
+        'proxy_ticker': 'URTH',
+        'note': 'iShares MSCI World ETF (URTH) as proxy for MSCI World',
     },
     '4GLD': {
-        'proxy_source': 'stooq',
-        'proxy_ticker': 'xauusd',
-        'note': 'XAUUSD gold spot — 200+ year history on stooq',
+        'proxy_source': 'yfinance',
+        'proxy_ticker': 'GLD',
+        'note': 'SPDR Gold Shares (GLD) — real historical prices',
     },
     'XDWT': {
         'proxy_source': 'yfinance',
         'proxy_ticker': '^NDX',
         'note': 'Nasdaq 100 as proxy for historical MSCI World Info Tech (XDWT)',
     },
-    # SYBJ: FRED API stopped responding with CSV. Extrapolation will take over automatically.
+    'SYBJ': {
+        'proxy_source': 'yfinance',
+        'proxy_ticker': 'HYG',
+        'note': 'iShares iBoxx $ High Yield Corporate Bond ETF (HYG)',
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -167,95 +171,6 @@ def copy_static_data():
 # ===========================================================================
 # PHASE 2 : Proxy index fetchers
 # ===========================================================================
-
-def fetch_stooq_monthly(ticker: str) -> pd.Series:
-    """
-    Fetch monthly close prices from stooq direct CSV endpoint.
-    Returns a pd.Series indexed by month-start dates, sorted ascending.
-    """
-    url = f'https://stooq.com/q/d/l/?s={ticker}&i=m'
-    print(f"  Fetching stooq CSV: {url}")
-    try:
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        df = pd.read_csv(io.StringIO(resp.text))
-        if 'Date' not in df.columns or 'Close' not in df.columns:
-            print(f"  Unexpected stooq columns: {df.columns.tolist()}")
-            return pd.Series(dtype=float)
-        df['Date'] = pd.to_datetime(df['Date'])
-        df.set_index('Date', inplace=True)
-        df.sort_index(inplace=True)
-        series = df['Close'].dropna()
-        # Resample to month-start
-        series = series.resample('MS').first().dropna()
-        print(f"  stooq OK — {len(series)} rows from {series.index.min().date()} to {series.index.max().date()}")
-        return series
-    except Exception as e:
-        print(f"  stooq fetch error for {ticker}: {e}")
-        return pd.Series(dtype=float)
-
-
-def fetch_fred_monthly(series_id: str) -> pd.Series:
-    """
-    Fetch monthly data from FRED (Federal Reserve Economic Data).
-    Returns a pd.Series of yield values indexed by month-start dates.
-    """
-    url = (f'https://fred.stlouisfed.org/graph/fredgraph.csv'
-           f'?id={series_id}&vintage_date=&realtime_start=&realtime_end=')
-    print(f"  Fetching FRED series: {series_id}")
-    try:
-        resp = requests.get(url, timeout=30)
-        resp.raise_for_status()
-        df = pd.read_csv(io.StringIO(resp.text), parse_dates=['DATE'])
-        df.rename(columns={'DATE': 'Date', series_id: 'Value'}, inplace=True)
-        df.set_index('Date', inplace=True)
-        df.sort_index(inplace=True)
-        # FRED may use '.' for missing — replace and drop
-        df['Value'] = pd.to_numeric(df['Value'], errors='coerce')
-        series = df['Value'].dropna()
-        series = series.resample('MS').first().dropna()
-        print(f"  FRED OK — {len(series)} rows from {series.index.min().date()} to {series.index.max().date()}")
-        return series
-    except Exception as e:
-        print(f"  FRED fetch error for {series_id}: {e}")
-        return pd.Series(dtype=float)
-
-
-def fred_yields_to_synthetic_prices(yield_series: pd.Series,
-                                    anchor_price: float,
-                                    anchor_date: pd.Timestamp) -> pd.Series:
-    """
-    Convert a FRED yield (%) time series into a synthetic price series.
-
-    The yield is an annual %. We convert to monthly and apply backwards:
-      price[t-1] = price[t] / (1 + monthly_change)
-    where monthly_change = (yield[t] - yield[t-1]) / 12 / 100
-
-    The series is anchored so that the price at anchor_date equals anchor_price.
-    Returns a Series of prices (sorted ascending, month-start indexed).
-    """
-    # Only keep dates before (and up to) anchor
-    series = yield_series[yield_series.index <= anchor_date].copy()
-    if series.empty:
-        return pd.Series(dtype=float)
-
-    # Monthly yield change as fraction
-    monthly_changes = series.pct_change().fillna(0) / 12
-
-    # Build price series backwards from anchor
-    dates = list(series.index)
-    prices = {}
-
-    # Find the closest date to anchor_date to set the starting anchor
-    anchor_idx = len(dates) - 1
-    prices[dates[anchor_idx]] = anchor_price
-
-    for i in range(anchor_idx - 1, -1, -1):
-        chg = monthly_changes.iloc[i + 1]
-        prices[dates[i]] = prices[dates[i + 1]] / (1 + chg)
-
-    result = pd.Series(prices).sort_index()
-    return result
 
 
 def apply_proxy_returns_backwards(proxy_series: pd.Series,
@@ -347,13 +262,6 @@ def fetch_and_populate_prices():
     """Main price population loop for all ETFs."""
     print("\n=== PHASE 2/3: Fetching and populating price history ===")
 
-    # Pre-fetch proxy series (do it once, reuse across ETFs)
-    print("\n--- Pre-fetching proxy index series ---")
-    proxy_cache = {}
-    proxy_cache['stooq_xauusd'] = fetch_stooq_monthly('xauusd')
-    proxy_cache['stooq_msciw'] = fetch_stooq_monthly('msciw')
-    proxy_cache['fred_hy'] = fetch_fred_monthly('BAMLHE00EHY0EY')
-    time.sleep(2)
 
     etfs = session_v2.query(Etfs).all()
     target_start = pd.Timestamp.now().replace(day=1) - pd.DateOffset(months=TARGET_MONTHS)
@@ -399,31 +307,10 @@ def fetch_and_populate_prices():
                         proxy_series = apply_proxy_returns_backwards(
                             raw_proxy, first_real_price, first_real_date)
                         proxy_source_label = 'index_proxy'
-
-                elif src == 'stooq':
-                    cache_key = f'stooq_{ticker_prx}'
-                    raw_proxy = proxy_cache.get(cache_key)
-                    if raw_proxy is None:
-                        raw_proxy = fetch_stooq_monthly(ticker_prx)
-                        proxy_cache[cache_key] = raw_proxy
-
-                    if etf.ticker == 'SYBJ':
-                        # FRED yield path — handled separately
-                        pass
-                    elif not raw_proxy.empty:
-                        proxy_series = apply_proxy_returns_backwards(
-                            raw_proxy, first_real_price, first_real_date)
-                        proxy_source_label = 'index_proxy'
-
-                elif src == 'fred':
-                    fred_yields = proxy_cache.get('fred_hy', pd.Series(dtype=float))
-                    if not fred_yields.empty:
-                        # Convert yield series to synthetic prices anchored at first_real_price
-                        proxy_series = fred_yields_to_synthetic_prices(
-                            fred_yields, first_real_price, first_real_date)
-                        # Only keep dates before first_real_date
-                        proxy_series = proxy_series[proxy_series.index < first_real_date]
-                        proxy_source_label = 'index_proxy'
+                    else:
+                        raise ValueError(f"CRITICAL ERROR: Proxy fetch failed for {ticker_prx} ({src}). Cannot accurately backfill data. Please fix the proxy source.")
+                else:
+                    raise ValueError(f"Unknown proxy source: {src}")
             else:
                 print(f"  No proxy config for {etf.ticker} — will extrapolate if needed")
 
