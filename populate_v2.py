@@ -121,14 +121,12 @@ def copy_static_data():
         ))
 
     # --- InflationRates (year-by-year source table — was empty in V2 before) ---
+    # Unpivot wide table to flat schema
     rows_ir = list(session_v1.execute(text('SELECT * FROM inflation_rates')))
     for row in rows_ir:
-        session_v2.add(InflationRates(
-            year=row.year,
-            EUR_inflation_rate=row.EUR_inflation_rate,
-            USD_inflation_rate=row.USD_inflation_rate,
-            PLN_inflation_rate=row.PLN_inflation_rate,
-        ))
+        session_v2.add(InflationRates(year=row.year, currency_code='EUR', rate=row.EUR_inflation_rate))
+        session_v2.add(InflationRates(year=row.year, currency_code='USD', rate=row.USD_inflation_rate))
+        session_v2.add(InflationRates(year=row.year, currency_code='PLN', rate=row.PLN_inflation_rate))
     print(f"  InflationRates: copied {len(rows_ir)} rows")
 
     # --- ETFs (without yield columns — those are recomputed by app.py update()) ---

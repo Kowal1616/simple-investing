@@ -11,6 +11,15 @@ class InflationRates(db.Model):
     currency_code = db.Column(db.String, nullable=False)
     rate = db.Column(db.Float, nullable=False)
 
+class InflationHistoricalPeriods(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    currency = db.Column(db.String, nullable=False)
+    inflation5 = db.Column(db.Float, nullable=False)
+    inflation10 = db.Column(db.Float, nullable=False)
+    inflation20 = db.Column(db.Float, nullable=False)
+    inflation30 = db.Column(db.Float, nullable=False)
+    inflation40 = db.Column(db.Float, nullable=False)
+
 
 class AnnualMacroData(db.Model):
     """
