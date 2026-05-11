@@ -11,3 +11,4 @@ pydantic
 jinja2
 httpx
 gunicorn
+yfinance
