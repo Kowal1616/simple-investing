@@ -45,8 +45,7 @@ load_dotenv()
 DB_V1_URI = 'sqlite:///instance/financial_data.db'
 DB_V2_URI = 'sqlite:///instance/financial_data_v2.db'
 TARGET_MONTHS = 485      # 40+ years
-SLEEP_BETWEEN_ETFS = 12  # seconds — keeps YF + AV happy
-ALPHAVANTAGE_API_KEY = os.getenv('ALPHAVANTAGE_API_KEY')
+SLEEP_BETWEEN_ETFS = 12  # seconds — keeps YF happy
 
 # Map ETF ticker → index proxy config.
 # Only entries that need pre-launch simulation are listed.
@@ -139,7 +138,6 @@ def copy_static_data():
             asset_type=row.asset_type,
             currency=row.currency,
             yfinance_name=row.yfinance_name,
-            alphavantage_name=row.alphavantage_name,
             external_ticker=row.yfinance_name,
         ))
 
@@ -339,35 +337,6 @@ def fetch_yf_monthly(ticker: str) -> pd.Series:
         return pd.Series(dtype=float)
 
 
-def fetch_av_monthly(ticker_av: str) -> pd.Series:
-    """Fetch monthly adjusted close via AlphaVantage API."""
-    if not ALPHAVANTAGE_API_KEY:
-        return pd.Series(dtype=float)
-    print(f"  Fetching AlphaVantage: {ticker_av}")
-    url = (f'https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED'
-           f'&symbol={ticker_av}&apikey={ALPHAVANTAGE_API_KEY}&datatype=csv')
-    for attempt in range(3):
-        try:
-            resp = requests.get(url, timeout=30)
-            resp.raise_for_status()
-            if 'Thank you for using Alpha Vantage' in resp.text or 'rate limit' in resp.text.lower():
-                print(f"  AV rate limit (attempt {attempt+1}/3). Waiting 65s...")
-                time.sleep(65)
-                continue
-            df = pd.read_csv(io.StringIO(resp.text))
-            if 'timestamp' not in df.columns or 'adjusted close' not in df.columns:
-                print(f"  AV unexpected format")
-                return pd.Series(dtype=float)
-            df['timestamp'] = pd.to_datetime(df['timestamp'])
-            df.set_index('timestamp', inplace=True)
-            df.sort_index(inplace=True)
-            series = df['adjusted close'].resample('MS').first().dropna()
-            print(f"  AV OK — {len(series)} rows")
-            return series
-        except Exception as e:
-            print(f"  AV error (attempt {attempt+1}/3): {e}")
-            time.sleep(10)
-    return pd.Series(dtype=float)
 
 
 # ===========================================================================
@@ -400,15 +369,7 @@ def fetch_and_populate_prices():
 
         # --- Step 1: Fetch real ETF prices ---
         real_data = fetch_yf_monthly(etf.yfinance_name)
-        if len(real_data) < 12:
-            av_data = fetch_av_monthly(etf.alphavantage_name)
-            if len(av_data) > len(real_data):
-                real_data = av_data
-                real_source = 'alphavantage'
-            else:
-                real_source = 'yfinance'
-        else:
-            real_source = 'yfinance'
+        real_source = 'yfinance'
 
         if real_data.empty:
             print(f"  WARNING: No real data for {etf.ticker}. Skipping.")
