@@ -1,9 +1,10 @@
 import os
 import httpx
 import logging
+import traceback
+import fcntl
 from datetime import datetime
 from fastapi import FastAPI, Request, Response
-from datetime import datetime
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -70,8 +71,9 @@ def update_job():
             logging.info("Background update job completed successfully.")
         except Exception as e:
             db.session.rollback()
-            logging.error('An error occurred in update_job(): %s', e, exc_info=True)
-            helpers.update_error_email(e)
+            err_msg = traceback.format_exc()
+            logging.error('An error occurred in update_job(): %s\n%s', e, err_msg)
+            helpers.update_error_email(e, traceback_str=err_msg)
 
 def sync_macro_job():
     """Sync macroeconomic data (CPI inflation + EUR/currency FX rates) from FRED."""
@@ -83,12 +85,31 @@ def sync_macro_job():
             logging.info("Background macro sync job completed.")
         except Exception as e:
             session.rollback()
-            logging.error('An error occurred in sync_macro_job(): %s', e, exc_info=True)
+            err_msg = traceback.format_exc()
+            logging.error('An error occurred in sync_macro_job(): %s\n%s', e, err_msg)
+            try:
+                from notifications import SystemNotifier
+                SystemNotifier().send_error_alert(f"Background macro sync failed:\n<pre>{err_msg}</pre>")
+            except Exception:
+                pass
         finally:
             session.close()
 
 def start_scheduler():
     if not scheduler.running:
+        # Acquire a file lock to ensure only one worker runs the scheduler
+        lock_file = os.path.join(BASE_DIR, 'instance', 'scheduler.lock')
+        try:
+            lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR)
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # Hold the lock open for the lifetime of this process
+            # Do NOT close lock_fd, it will be automatically released when this process exits.
+            global _scheduler_lock_fd
+            _scheduler_lock_fd = lock_fd
+        except (IOError, OSError):
+            logging.info("Another worker is already running the scheduler. Skipping scheduler start.")
+            return
+
         # Run on the 10th of every month at 04:00 AM
         scheduler.add_job(
             func=update_job, 
@@ -102,7 +123,7 @@ def start_scheduler():
             misfire_grace_time=3600
         )
         scheduler.start()
-        logging.info("Scheduler started.")
+        logging.info("Scheduler started (Lock acquired).")
 
 # ── FastAPI App Setup ──────────────────────────────────────────────────────
 app = FastAPI(title="ZenETFs API")

@@ -25,6 +25,7 @@ import os
 import sys
 import logging
 import datetime
+import traceback
 
 import httpx
 
@@ -352,9 +353,9 @@ def run_sync(session) -> None:
     if new_data:
         try:
             notifier = SystemNotifier()
-            notifier.send_error_alert(
-                f"🔥 ZenETFs: Dane makroekonomiczne zaktualizowane! "
-                f"Pobrano nowe dane inflacyjne/kursowe z FRED."
+            notifier.send_success_email(
+                "ZenETFs: Dane makroekonomiczne zaktualizowane! "
+                "Pobrano nowe dane inflacyjne/kursowe z FRED."
             )
         except Exception as exc:
             log.warning("Notification failed: %s", exc)
@@ -373,7 +374,12 @@ if __name__ == '__main__':
             run_sync(session)
         except Exception as exc:
             session.rollback()
-            log.error("sync_macro failed: %s", exc, exc_info=True)
+            err_msg = traceback.format_exc()
+            log.error("sync_macro failed: %s\n%s", exc, err_msg)
+            try:
+                SystemNotifier().send_error_alert(f"sync_macro.py failed:\n<pre>{err_msg}</pre>")
+            except Exception:
+                pass
             raise
         finally:
             session.close()

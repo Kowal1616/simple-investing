@@ -437,13 +437,14 @@ def get_portfolios_drawdown(portfolios_results):
 # Error notifications
 # ===========================================================================
 
-def update_error_email(e):
+def update_error_email(e, traceback_str=None):
     """Log the error and send an alert email + WhatsApp to the administrator."""
     logging.error('Application error: %s', e)
     notifier = SystemNotifier()
-    notifier.send_error_alert(
-        f'SimpleInvesting database update failed. Error: {e}'
-    )
+    msg = f'SimpleInvesting database update failed. Error: {e}'
+    if traceback_str:
+        msg += f'<br><br>Traceback:<br><pre>{traceback_str}</pre>'
+    notifier.send_error_alert(msg)
 
 def notify_success(message: str):
     """Log the success and send an info alert via WhatsApp."""

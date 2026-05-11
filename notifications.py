@@ -137,6 +137,63 @@ class SystemNotifier:
             logging.error("Failed to send error alert email — network error: %s", exc)
             return False
 
+    def send_success_email(self, message: str, subject: str = "SimpleInvesting — Success Alert") -> bool:
+        """
+        Send a success alert email and WhatsApp message to the administrator.
+
+        Args:
+            message: Plain-text or HTML description of the success.
+            subject: Optional custom subject for the email.
+
+        Returns:
+            True if the email request was accepted (HTTP 2xx), False otherwise.
+        """
+        # 1. Send WhatsApp Success Alert
+        whatsapp_msg = f"🚀 {message}"
+        self._send_whatsapp(whatsapp_msg)
+
+        # 2. Send Email Success Alert
+        if not self._is_email_configured():
+            logging.warning("Email notification service not configured — success alert skipped.")
+            return False
+
+        payload = {
+            "sender": {
+                "name": "SimpleInvesting Alert",
+                "email": self._sender_email,
+            },
+            "to": [{"email": self._admin_email}],
+            "subject": subject,
+            "htmlContent": f"<strong>Success:</strong> {message}",
+        }
+
+        headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
+            "api-key": self._api_key,
+        }
+
+        try:
+            response = requests.post(
+                self._API_ENDPOINT,
+                json=payload,
+                headers=headers,
+                timeout=10,
+            )
+            if response.ok:
+                logging.info("Success alert email sent successfully (status %s).", response.status_code)
+                return True
+            else:
+                logging.error(
+                    "Alert API returned non-OK status %s: %s",
+                    response.status_code,
+                    response.text,
+                )
+                return False
+        except requests.RequestException as exc:
+            logging.error("Failed to send success alert email — network error: %s", exc)
+            return False
+
     def send_info_alert(self, message: str) -> bool:
         """
         Send an informational alert via WhatsApp only.
