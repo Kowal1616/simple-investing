@@ -4,9 +4,9 @@ populate_v2.py
 Populates financial_data_v2.db from scratch (or top-ups safely on re-run).
 
 Phases:
-  1. Copy static data (ETFs, Portfolios, PortfolioComposition, InflationHistoricalPeriods,
-     InflationRates) from V1 → V2.
-  2. For each ETF:
+  1. Copy static data (ETFs, Portfolios, PortfolioComposition) from V1 → V2.
+  2. Bootstrap MacroAveragesCache (inflation + FX data) via sync_macro.
+  3. For each ETF:
        a. Fetch real monthly price data via yfinance (primary) and AlphaVantage (fallback).
        b. Fetch real index proxy data for the pre-launch gap:
             SXR8  => ^GSPC  (S&P 500, Yahoo Finance)
@@ -385,8 +385,21 @@ def print_summary():
     for r in rows:
         print(f"{r[0]:<8} {r[1]:>5} {r[2]:<12} {r[3]:<12} {r[4]:>5} {r[5]:>6}")
 
-    ir = session_v2.execute(text("SELECT COUNT(*) FROM inflation_rates")).scalar()
-    print(f"\nInflationRates rows: {ir}")
+    # ===========================================================================
+    # Bootstrap macro averages cache
+    # ===========================================================================
+    from scripts.sync_macro import run_sync as run_macro_sync
+    print("\n--- Bootstrapping MacroAveragesCache ---")
+    try:
+        run_macro_sync(session_v2)
+        print("MacroAveragesCache populated successfully.")
+    except Exception as e:
+        print(f"MacroAveragesCache bootstrap failed: {e}")
+        # Continue; the app will gracefully fall back to nominal data.
+
+    session_v1.close()
+    session_v2.close()
+    print("\nDone! V2 database populated.")
 
 
 # ===========================================================================
@@ -397,6 +410,3 @@ if __name__ == '__main__':
     copy_static_data()
     fetch_and_populate_prices()
     print_summary()
-    print("\nDone! V2 database populated.")
-    session_v1.close()
-    session_v2.close()

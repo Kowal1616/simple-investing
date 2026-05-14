@@ -4,13 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
-class InflationRates(db.Model):
-    """Legacy table — kept for backward compatibility. Data migrated to AnnualMacroData."""
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    year = db.Column(db.Integer, nullable=False)
-    currency_code = db.Column(db.String, nullable=False)
-    rate = db.Column(db.Float, nullable=False)
-
 class InflationHistoricalPeriods(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     currency = db.Column(db.String, nullable=False)
@@ -23,7 +16,7 @@ class InflationHistoricalPeriods(db.Model):
 
 class AnnualMacroData(db.Model):
     """
-    Annual macroeconomic data sourced from FRED (and migrated from InflationRates legacy).
+    Annual macroeconomic data sourced from FRED.
     Stores yearly CPI inflation and the average EUR/currency exchange rate.
     """
     __tablename__ = 'annual_macro_data'

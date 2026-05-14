@@ -39,7 +39,7 @@ from dotenv import load_dotenv
 load_dotenv(os.path.join(_ROOT, '.env'))
 
 from flask import Flask
-from models_v2 import db, AnnualMacroData, MacroAveragesCache, InflationRates
+from models_v2 import db, AnnualMacroData, MacroAveragesCache
 from notifications import SystemNotifier
 
 # ── Logging ──────────────────────────────────────────────────────────────────
@@ -125,46 +125,6 @@ def _fetch_annual_point(series_id: str, target_year: int) -> float | None:
     
     log.info("%s: no valid data for %d.", series_id, target_year)
     return None
-
-
-# ── Migration: InflationRates → AnnualMacroData ───────────────────────────────
-
-def migrate_legacy_inflation(session) -> int:
-    """
-    Copy EUR and PLN rows from the legacy InflationRates table to AnnualMacroData.
-    Only currencies 'EUR' and 'PLN' are migrated; USD is ignored.
-    eur_rate is left None for all migrated rows — backfilled later via FRED.
-    Returns number of rows inserted.
-    """
-    # Check if table exists (avoids error if it was never created)
-    try:
-        rows = (session.query(InflationRates)
-                .filter(InflationRates.currency_code.in_(['EUR', 'PLN']))
-                .order_by(InflationRates.year)
-                .all())
-    except Exception:
-        return 0
-
-    inserted = 0
-    for row in rows:
-        exists = (session.query(AnnualMacroData)
-                  .filter_by(year=row.year, currency_code=row.currency_code)
-                  .first())
-        if exists:
-            continue
-        session.add(AnnualMacroData(
-            year=row.year,
-            currency_code=row.currency_code,
-            annual_inflation_pct=row.rate,
-            eur_rate=None,  # backfilled in _backfill_missing_eur_rates()
-        ))
-        inserted += 1
-
-    if inserted:
-        session.commit()
-        log.info("Legacy migration: inserted %d rows into annual_macro_data.", inserted)
-
-    return inserted
 
 
 def _backfill_missing_eur_rates(session, currency: str) -> None:
@@ -333,8 +293,6 @@ def run_sync(session) -> None:
     """
     Full synchronisation routine.
     """
-    # Step 1: Migrate legacy InflationRates data on first run
-    legacy_inserted = migrate_legacy_inflation(session)
     _backfill_missing_eur_rates(session, 'PLN')
 
     # Step 2: Determine recent years to try extending
