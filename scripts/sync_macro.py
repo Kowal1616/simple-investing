@@ -26,8 +26,11 @@ import sys
 import logging
 import datetime
 import traceback
+import random
 
 import httpx
+from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
 
 # ── Path setup so we can import project modules when run standalone ──────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
@@ -78,10 +81,18 @@ def _create_flask_app() -> Flask:
 
 # ── FRED helpers ──────────────────────────────────────────────────────────────
 
+@retry(
+    reraise=True,
+    stop=stop_after_attempt(5),
+    wait=wait_exponential(multiplier=1, min=2, max=30),  # built-in jitter
+    retry=retry_if_exception_type(
+        (httpx.HTTPStatusError, httpx.ConnectError, httpx.ReadTimeout, httpx.NetworkError)
+    ),
+)
 def _fred_get(series_id: str, observation_start: str, observation_end: str,
               frequency: str | None = None) -> list[dict]:
     """
-    Fetch observations from FRED.
+    Fetch observations from FRED.  Retries automatically on transient errors.
     Returns list of {'date': 'YYYY-MM-DD', 'value': '3.14'} dicts.
     Filters out missing values ('.' in FRED).
     """
@@ -162,15 +173,25 @@ def _backfill_missing_eur_rates(session, currency: str) -> None:
         row.eur_rate = eur_pln
         log.info("  %d: EUR/PLN = %.4f", row.year, eur_pln)
 
-    session.commit()
+    _atomic_commit(session)
 
 
 # ── Fetch new year's data ─────────────────────────────────────────────────────
+
+def _atomic_commit(session):
+    """Commit with graceful handling of IntegrityError from race conditions."""
+    try:
+        session.commit()
+    except SQLAlchemyIntegrityError:
+        session.rollback()
+        log.debug("IntegrityError on commit — record already exists, skipping.")
+
 
 def fetch_and_insert_year(session, target_year: int) -> bool:
     """
     Fetch CPI and FX data for target_year from FRED and insert or update annual_macro_data.
     Returns True if ANY data was changed, False otherwise.
+    Uses atomic upsert to avoid IntegrityError from concurrent workers.
     """
     changed = False
 
@@ -186,7 +207,7 @@ def fetch_and_insert_year(session, target_year: int) -> bool:
                 session.add(eur_row)
             
             eur_row.annual_inflation_pct = round(eur_cpi, 4)
-            session.commit()
+            _atomic_commit(session)
             log.info("Updated EUR CPI for %d: %.2f%%", target_year, eur_cpi)
             changed = True
 
@@ -207,7 +228,7 @@ def fetch_and_insert_year(session, target_year: int) -> bool:
             
             pln_row.annual_inflation_pct = round(pln_cpi, 4)
             pln_row.eur_rate = eur_pln
-            session.commit()
+            _atomic_commit(session)
             log.info("Updated PLN data for %d: CPI=%.2f%%, EUR/PLN=%.4f",
                      target_year, pln_cpi, eur_pln)
             changed = True
@@ -283,7 +304,11 @@ def recompute_cache(session) -> None:
                     updated_at=note,
                 ))
 
+    try:
         session.commit()
+    except SQLAlchemyIntegrityError:
+        session.rollback()
+        log.debug("IntegrityError on cache commit — another worker already inserted, skipping.")
     log.info("Cache recomputed for all currencies.")
 
 
@@ -292,6 +317,7 @@ def recompute_cache(session) -> None:
 def run_sync(session) -> None:
     """
     Full synchronisation routine.
+    Handles IntegrityError gracefully when multiple workers run concurrently.
     """
     _backfill_missing_eur_rates(session, 'PLN')
 
@@ -330,6 +356,9 @@ if __name__ == '__main__':
         session = db.session()
         try:
             run_sync(session)
+        except SQLAlchemyIntegrityError:
+            session.rollback()
+            log.info("sync_macro: Data already inserted by another worker — skipping.")
         except Exception as exc:
             session.rollback()
             err_msg = traceback.format_exc()
