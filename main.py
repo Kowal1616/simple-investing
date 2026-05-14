@@ -1,9 +1,12 @@
 import os
+import random
+import time as _time
 import httpx
 import logging
 import traceback
 import fcntl
 from datetime import datetime
+from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
@@ -219,23 +222,44 @@ async def startup_event():
         logging.info("Database connected successfully using Flask context.")
 
     # 2. Bootstrap MacroAveragesCache if empty (fresh DB or rebuild)
-    with flask_app.app_context():
-        session = db.session()
+    #    - Random jitter to avoid all Gunicorn workers hitting FRED simultaneously
+    #    - File-based lock (fcntl) so only ONE worker runs the bootstrap
+    #    - Graceful handling of IntegrityError (another worker may have inserted)
+    _time.sleep(random.uniform(0.5, 2.0))
+
+    bootstrap_lock = os.path.join(BASE_DIR, "instance", "bootstrap.lock")
+    lock_fd = None
+    try:
+        lock_fd = os.open(bootstrap_lock, os.O_CREAT | os.O_RDWR)
         try:
-            cache_count = session.query(MacroAveragesCache).count()
-            if cache_count == 0:
-                logging.info("MacroAveragesCache is empty — running macro sync bootstrap...")
+            fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except (IOError, OSError):
+            logging.info("Bootstrap lock already held — another worker is bootstrapping. Skipping.")
+            lock_fd = None
+        else:
+            with flask_app.app_context():
+                session = db.session()
                 try:
-                    run_macro_sync(session)
-                    logging.info("Macro sync bootstrap completed successfully.")
-                except Exception as e:
-                    logging.error("Macro sync bootstrap failed: %s", e)
-                    # Do not crash the app; the cache will be empty and
-                    # inflation toggle will gracefully fall back to nominal.
-            else:
-                logging.info("MacroAveragesCache already populated (%d rows).", cache_count)
-        finally:
-            session.close()
+                    cache_count = session.query(MacroAveragesCache).count()
+                    if cache_count == 0:
+                        logging.info("MacroAveragesCache is empty — running macro sync bootstrap...")
+                        try:
+                            run_macro_sync(session)
+                            logging.info("Macro sync bootstrap completed successfully.")
+                        except SQLAlchemyIntegrityError as ie:
+                            logging.info("Bootstrap data already inserted by another worker: %s", ie)
+                        except Exception as e:
+                            logging.warning("Macro sync bootstrap encountered an issue: %s", e)
+                            # Do not crash the app; the cache will remain empty and
+                            # the inflation toggle will gracefully fall back to nominal.
+                    else:
+                        logging.info("MacroAveragesCache already populated (%d rows).", cache_count)
+                finally:
+                    session.close()
+    finally:
+        if lock_fd is not None:
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            os.close(lock_fd)
 
     # 3. Start background scheduler
     start_scheduler()
