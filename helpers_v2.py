@@ -328,6 +328,8 @@ def get_real_portfolio_returns(session, currency: str = 'EUR') -> list:
 
     No inflation calculations are performed here — all averages are pre-computed
     by scripts/sync_macro.py and stored in macro_averages_cache.
+
+    If the cache is missing or incomplete, returns nominal data as a safe fallback.
     """
     nominal_data = get_portfolio_returns_in_currency(session, currency)
 
@@ -341,15 +343,32 @@ def get_real_portfolio_returns(session, currency: str = 'EUR') -> list:
         logging.warning('MacroAveragesCache empty for %s — returning nominal data.', currency)
         return nominal_data
 
+    # Ensure we have all required periods; missing any = return nominal gracefully
+    required_periods = {5, 10, 20, 30}
+    missing_periods = required_periods - set(cache.keys())
+    if missing_periods:
+        logging.warning(
+            'MacroAveragesCache incomplete for %s (missing periods: %s) — '
+            'returning nominal data.', currency, sorted(missing_periods)
+        )
+        return nominal_data
+
     periods = [5, 10, 20, 30]
     result = []
     for port_nominal in nominal_data:
         real_returns = []
         for cagr, yrs in zip(port_nominal, periods):
-            if yrs not in cache or cagr == 0.0:
+            if cagr == 0.0:
                 real_returns.append(0.0)
                 continue
-            avg_inf = cache[yrs].avg_inflation_pct / 100
+            cache_row = cache.get(yrs)
+            if not cache_row or cache_row.avg_inflation_pct is None:
+                real_returns.append(0.0)
+                continue
+            avg_inf = cache_row.avg_inflation_pct / 100
+            if avg_inf == 0.0:
+                real_returns.append(round(cagr, 2))
+                continue
             real_cagr = ((1 + cagr / 100) / (1 + avg_inf) - 1) * 100
             real_returns.append(round(real_cagr, 2))
         result.append(real_returns)
