@@ -15,7 +15,7 @@ from apscheduler.schedulers.base import STATE_RUNNING
 from dotenv import load_dotenv
 
 # Internal imports
-from models_v2 import db, Portfolios, HistoricalDataEtfs
+from models_v2 import db, Portfolios, HistoricalDataEtfs, MacroAveragesCache
 import helpers_v2 as helpers
 from scripts.sync_macro import run_sync as run_macro_sync
 
@@ -212,27 +212,34 @@ SEO_MAP = {
 
 
 @app.on_event("startup")
-def startup_event():
-    with flask_app.app_context():
-        db.engine.connect()
-        print("Database connected successfully using Flask context.")
-
-
-@app.on_event("shutdown")
-def shutdown_event():
-    with flask_app.app_context():
-        db.engine.dispose()
-        print("Database connection closed.")
-@app.on_event("startup")
 async def startup_event():
-    # Verify DB connectivity
+    # 1. Verify DB connectivity
     with flask_app.app_context():
         db.engine.connect()
         logging.info("Database connected successfully using Flask context.")
-    
-    # Start scheduler
-    # In multi-worker prod environments, ensure this only runs once or use a separate worker.
+
+    # 2. Bootstrap MacroAveragesCache if empty (fresh DB or rebuild)
+    with flask_app.app_context():
+        session = db.session()
+        try:
+            cache_count = session.query(MacroAveragesCache).count()
+            if cache_count == 0:
+                logging.info("MacroAveragesCache is empty — running macro sync bootstrap...")
+                try:
+                    run_macro_sync(session)
+                    logging.info("Macro sync bootstrap completed successfully.")
+                except Exception as e:
+                    logging.error("Macro sync bootstrap failed: %s", e)
+                    # Do not crash the app; the cache will be empty and
+                    # inflation toggle will gracefully fall back to nominal.
+            else:
+                logging.info("MacroAveragesCache already populated (%d rows).", cache_count)
+        finally:
+            session.close()
+
+    # 3. Start background scheduler
     start_scheduler()
+
 
 @app.on_event("shutdown")
 async def shutdown_event():
