@@ -153,20 +153,36 @@ def get_etfs_yields(session):
     years   = [5,  10,  20,  30,  40]
 
     for etf in etfs:
-        prices = (session.query(HistoricalDataEtfs.price)
+        rows = (session.query(HistoricalDataEtfs.date, HistoricalDataEtfs.price)
                   .filter_by(etf_id=etf.id)
                   .order_by(HistoricalDataEtfs.date)
                   .all())
-        prices = [p[0] for p in prices]
-        n = len(prices)
+        if not rows:
+            all_yields.append([0.0] * len(periods))
+            continue
+            
+        df = pd.DataFrame(rows, columns=['date', 'price'])
+        df['date'] = pd.to_datetime(df['date'])
+        df.set_index('date', inplace=True)
+        monthly_price = df['price'].resample('ME').last().dropna()
+        
         etf_yields = []
-
-        for period, yrs in zip(periods, years):
-            if n > period and prices[-(period + 1)] and prices[-(period + 1)] > 0:
-                cagr = round(((prices[-1] / prices[-(period + 1)]) ** (1 / yrs) - 1) * 100, 2)
-                etf_yields.append(cagr)
-            else:
-                etf_yields.append(0.0)
+        if not monthly_price.empty:
+            end_date = monthly_price.index[-1]
+            for period, yrs in zip(periods, years):
+                start_date = end_date - pd.DateOffset(years=yrs)
+                if monthly_price.index[0] <= start_date + pd.Timedelta(days=31):
+                    val_now = monthly_price.iloc[-1]
+                    val_start = monthly_price.asof(start_date)
+                    if pd.isna(val_start) or val_start == 0:
+                        etf_yields.append(0.0)
+                    else:
+                        cagr = round(((val_now / val_start) ** (1 / yrs) - 1) * 100, 2)
+                        etf_yields.append(float(cagr))
+                else:
+                    etf_yields.append(0.0)
+        else:
+            etf_yields = [0.0] * len(periods)
 
         all_yields.append(etf_yields)
 
@@ -242,22 +258,30 @@ def get_portfolio_returns(session):
 
         # Compound into Wealth Index
         blended_series = (1 + blended_returns).cumprod()
-        prices = blended_series.tolist()
-        n = len(prices)
         
         portfolio_yields = []
-        for period, yrs in zip(periods, years):
-            if n >= period:
-                # prices[-1] is latest, prices[-(period+1)] is 1 month before start of period
-                try:
-                    val_now = prices[-1]
-                    val_start = prices[-(period + 1)] if n > period else 1.0
-                    cagr = round(((val_now / val_start) ** (1 / yrs) - 1) * 100, 2)
-                    portfolio_yields.append(cagr)
-                except:
+        if not blended_series.empty:
+            end_date = blended_series.index[-1]
+            for period, yrs in zip(periods, years):
+                start_date = end_date - pd.DateOffset(years=yrs)
+                
+                if blended_series.index[0] <= start_date + pd.Timedelta(days=31):
+                    try:
+                        val_now = blended_series.iloc[-1]
+                        val_start = blended_series.asof(start_date)
+                        
+                        if pd.isna(val_start) or val_start == 0:
+                            val_start = 1.0
+                            
+                        cagr = round(((val_now / val_start) ** (1 / yrs) - 1) * 100, 2)
+                        portfolio_yields.append(float(cagr))
+                    except Exception as e:
+                        logging.warning('Error calculating portfolio returns: %s', e)
+                        portfolio_yields.append(0.0)
+                else:
                     portfolio_yields.append(0.0)
-            else:
-                portfolio_yields.append(0.0)
+        else:
+            portfolio_yields = [0.0] * len(periods)
 
         all_returns.append(portfolio_yields)
 
