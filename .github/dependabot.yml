@@ -1,0 +1,9 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"  # Szuka requirements.txt w głównym katalogu
+    schedule:
+      interval: "weekly"  # Sprawdza aktualizacje raz w tygodniu
+    open-pull-requests-limit: 3  # Maksymalnie 3 otwarte propozycje zmian na raz
+    allow:
+      - dependency-type: "direct"  # Aktualizuje tylko biblioteki wpisane bezpośrednio przez Ciebie
