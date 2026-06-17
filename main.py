@@ -175,6 +175,12 @@ SEO_MAP = {
             "twitter_title": "ZenETFs — Privacy Policy",
             "twitter_description": "How ZenETFs collects, uses and protects your data.",
         },
+        "brokers": {
+            "og_title": "ZenETFs — Broker Recommendations | Buy UCITS ETFs",
+            "og_description": "Recommended brokers for European investors to buy UCITS ETFs. Compare platforms, fees, and features.",
+            "twitter_title": "ZenETFs — Broker Recommendations | Buy UCITS ETFs",
+            "twitter_description": "Recommended brokers for European investors to buy UCITS ETFs.",
+        },
     },
     "pl": {
         "index": {
@@ -206,6 +212,18 @@ SEO_MAP = {
             "og_description": "Jak ZenETFs zbiera, wykorzystuje i chroni Twoje dane. Przeczytaj naszą politykę prywatności.",
             "twitter_title": "ZenETFs — Polityka Prywatności",
             "twitter_description": "Jak ZenETFs zbiera, wykorzystuje i chroni Twoje dane.",
+        },
+        "brokers": {
+            "og_title": "ZenETFs — Rekomendacje Brokerów | Kupno ETF UCITS",
+            "og_description": "Polecani brokerzy dla europejskich inwestorów do zakupu ETF UCITS. Porównanie platform, opłat i funkcji.",
+            "twitter_title": "ZenETFs — Rekomendacje Brokerów | Kupno ETF UCITS",
+            "twitter_description": "Polecani brokerzy do zakupu ETF UCITS dla europejskich inwestorów.",
+        },
+        "obligacje-skarbowe": {
+            "og_title": "ZenETFs — Obligacje Skarbowe | EDO, ROD dla Inwestorów",
+            "og_description": "Informacje o obligacjach skarbowych EDO i ROD. Bezpieczna alternatywa dla ETF-ów obligacyjnych dostępna dla polskich inwestorów.",
+            "twitter_title": "ZenETFs — Obligacje Skarbowe | EDO, ROD",
+            "twitter_description": "Obligacje skarbowe EDO i ROD — bezpieczna alternatywa inwestycyjna.",
         },
     },
 }
@@ -484,6 +502,20 @@ async def pl_privacy(request: Request):
     )
 
 
+@app.get("/pl/brokers", response_class=HTMLResponse)
+async def pl_brokers(request: Request):
+    return templates.TemplateResponse(
+        request, "pl/brokers.html", ctx(request, "pl", "brokers")
+    )
+
+
+@app.get("/pl/obligacje-skarbowe", response_class=HTMLResponse)
+async def pl_obligacje_skarbowe(request: Request):
+    return templates.TemplateResponse(
+        request, "pl/obligacje-skarbowe.html", ctx(request, "pl", "obligacje-skarbowe")
+    )
+
+
 # ── English routes (/en/) ─────────────────────────────────────────────────────
 
 @app.get("/en/", response_class=HTMLResponse)
@@ -511,6 +543,13 @@ async def en_about(request: Request):
 async def en_privacy(request: Request):
     return templates.TemplateResponse(
         request, "en/privacy.html", ctx(request, "en", "privacy")
+    )
+
+
+@app.get("/en/brokers", response_class=HTMLResponse)
+async def en_brokers(request: Request):
+    return templates.TemplateResponse(
+        request, "en/brokers.html", ctx(request, "en", "brokers")
     )
 
 
@@ -559,7 +598,7 @@ async def sitemap(request: Request):
     if host.startswith("www."):
         return RedirectResponse(url=f"https://zenetfs.com/sitemap.xml", status_code=301)
 
-    pages = ["", "portfolios", "etfs", "about", "privacy"]
+    pages = ["", "portfolios", "etfs", "about", "privacy", "brokers", "obligacje-skarbowe"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
 
     base = BASE_URL.rstrip("/")

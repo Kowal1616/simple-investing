@@ -37,7 +37,7 @@ ETF_CONFIG = [
     {"ticker": "SPXP", "name": "Invesco S&P 500 UCITS ETF", "isin": "IE00B3YCGJ38", "asset_type": "Stocks - USA", "currency": "EUR", "ext_ticker": "SPXP.DE", "eodhd": "SPXP.LSE"},
     
     # Global Technology
-    {"ticker": "IXN",  "name": "iShares Global Tech ETF", "isin": "US4642872919", "asset_type": "Stocks - Tech", "currency": "USD", "ext_ticker": "IXN", "eodhd": "IXN.US"},
+    {"ticker": "SPFT", "name": "SPDR MSCI World Technology UCITS ETF", "isin": "IE00BYTRRD19", "asset_type": "Stocks - Tech", "currency": "EUR", "ext_ticker": "SPFT.DE", "eodhd": "SPFT.XETRA"},
     {"ticker": "XDWT", "name": "Xtrackers MSCI World IT UCITS", "isin": "IE00BM67HT60", "asset_type": "Stocks - Tech", "currency": "EUR", "ext_ticker": "XDWT.DE", "eodhd": "XDWT.XETRA"},
     {"ticker": "IITU", "name": "Amundi S&P Global IT ESG UCITS", "isin": "IE000E7EI9P0", "asset_type": "Stocks - Tech", "currency": "EUR", "ext_ticker": "IITU.DE", "eodhd": "WELU.XETRA"},
     
@@ -58,7 +58,7 @@ ETF_CONFIG = [
 # ── Configuration: Portfolios ───────────────────────────────────────────────
 PORTFOLIO_CONFIG = [
     {"name": "USA (S&P 500)", "slug": "sp500", "composition": {"SXR8": 33.333, "XDP6": 33.333, "SPXP": 33.334}},
-    {"name": "GLOBAL TECHNOLOGY", "slug": "tech", "composition": {"IXN": 33.333, "XDWT": 33.333, "IITU": 33.334}},
+    {"name": "GLOBAL TECHNOLOGY", "slug": "tech", "composition": {"SPFT": 33.333, "XDWT": 33.333, "IITU": 33.334}},
     {"name": "ALL WORLD", "slug": "allworld", "composition": {"IUSQ": 33.333, "VWCE": 33.333, "SPYY": 33.334}},
     
     {"name": "80-20 (Stocks-Bonds) EN", "slug": "80-20_EN", "composition": {
@@ -172,6 +172,10 @@ def get_fred_data(series_id):
     except Exception as e:
         log.warning("FRED failed for %s: %s", series_id, e)
     return None
+
+def get_eurusd_history():
+    """Fetch historical EUR/USD exchange rate from FRED (DEXUSEU)."""
+    return get_fred_data('DEXUSEU')
 
 # ── Logic: TBSP Proxy (Poland Bonds) ────────────────────────────────────────
 
@@ -369,6 +373,17 @@ def run_population(session, force=False):
         elif "All World" in cfg['asset_type']: proxy = acwi_proxy
         elif "Bonds - Global" in cfg['asset_type']: proxy = bond_proxy_en
         elif "Bonds - Poland" in cfg['asset_type']: proxy = tbsp_proxy
+        
+        # EUR/USD correction for gold proxy (GC=F is USD, ETFs are EUR)
+        if "Gold" in cfg['asset_type'] and proxy is not None and not proxy.empty:
+            eurusd = get_eurusd_history()
+            if eurusd is not None and not eurusd.empty:
+                anchor_date = prices.index[0] if not prices.empty else proxy.index[-1]
+                eurusd_at_anchor = eurusd.asof(anchor_date)
+                if pd.notna(eurusd_at_anchor) and eurusd_at_anchor > 0:
+                    eurusd_aligned = eurusd.reindex(proxy.index).ffill().bfill()
+                    proxy = proxy / eurusd_aligned * eurusd_at_anchor
+                    log.info("Applied EUR/USD correction to gold proxy (anchor: %s, rate: %.4f)", anchor_date.date(), eurusd_at_anchor)
         
         if proxy is not None and not proxy.empty:
             # Shift proxy to match first price of ETF

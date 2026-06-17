@@ -297,6 +297,14 @@ async def pl_etfs(request: Request):
 async def pl_about(request: Request):
     return templates.TemplateResponse(request, "pl/about.html", ctx(request, "pl", "about"))
 
+@app.get("/pl/brokers", response_class=HTMLResponse)
+async def pl_brokers(request: Request):
+    return templates.TemplateResponse(request, "pl/brokers.html", ctx(request, "pl", "brokers"))
+
+@app.get("/pl/obligacje-skarbowe", response_class=HTMLResponse)
+async def pl_obligacje_skarbowe(request: Request):
+    return templates.TemplateResponse(request, "pl/obligacje-skarbowe.html", ctx(request, "pl", "obligacje-skarbowe"))
+
 # English routes
 @app.get("/en/", response_class=HTMLResponse)
 async def en_index(request: Request):
@@ -313,6 +321,10 @@ async def en_etfs(request: Request):
 @app.get("/en/about", response_class=HTMLResponse)
 async def en_about(request: Request):
     return templates.TemplateResponse(request, "en/about.html", ctx(request, "en", "about"))
+
+@app.get("/en/brokers", response_class=HTMLResponse)
+async def en_brokers(request: Request):
+    return templates.TemplateResponse(request, "en/brokers.html", ctx(request, "en", "brokers"))
 
 @app.get("/api/data")
 def get_data(inflation: bool = False, currency: str = "EUR", lang: str = "en"):
@@ -340,7 +352,7 @@ async def robots_txt():
 
 @app.get("/sitemap.xml", response_class=Response)
 async def sitemap():
-    pages = ["", "portfolios", "etfs", "about"]
+    pages = ["", "portfolios", "etfs", "about", "brokers", "obligacje-skarbowe"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
     
     xml = ['<?xml version="1.0" encoding="UTF-8"?>']
