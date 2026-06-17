@@ -301,6 +301,10 @@ async def pl_about(request: Request):
 async def pl_brokers(request: Request):
     return templates.TemplateResponse(request, "pl/brokers.html", ctx(request, "pl", "brokers"))
 
+@app.get("/pl/obligacje-skarbowe", response_class=HTMLResponse)
+async def pl_obligacje_skarbowe(request: Request):
+    return templates.TemplateResponse(request, "pl/obligacje-skarbowe.html", ctx(request, "pl", "obligacje-skarbowe"))
+
 # English routes
 @app.get("/en/", response_class=HTMLResponse)
 async def en_index(request: Request):
@@ -348,7 +352,7 @@ async def robots_txt():
 
 @app.get("/sitemap.xml", response_class=Response)
 async def sitemap():
-    pages = ["", "portfolios", "etfs", "about", "brokers"]
+    pages = ["", "portfolios", "etfs", "about", "brokers", "obligacje-skarbowe"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
     
     xml = ['<?xml version="1.0" encoding="UTF-8"?>']

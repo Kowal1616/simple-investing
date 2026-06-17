@@ -219,6 +219,12 @@ SEO_MAP = {
             "twitter_title": "ZenETFs — Rekomendacje Brokerów | Kupno ETF UCITS",
             "twitter_description": "Polecani brokerzy do zakupu ETF UCITS dla europejskich inwestorów.",
         },
+        "obligacje-skarbowe": {
+            "og_title": "ZenETFs — Obligacje Skarbowe | EDO, ROD dla Inwestorów",
+            "og_description": "Informacje o obligacjach skarbowych EDO i ROD. Bezpieczna alternatywa dla ETF-ów obligacyjnych dostępna dla polskich inwestorów.",
+            "twitter_title": "ZenETFs — Obligacje Skarbowe | EDO, ROD",
+            "twitter_description": "Obligacje skarbowe EDO i ROD — bezpieczna alternatywa inwestycyjna.",
+        },
     },
 }
 
@@ -503,6 +509,13 @@ async def pl_brokers(request: Request):
     )
 
 
+@app.get("/pl/obligacje-skarbowe", response_class=HTMLResponse)
+async def pl_obligacje_skarbowe(request: Request):
+    return templates.TemplateResponse(
+        request, "pl/obligacje-skarbowe.html", ctx(request, "pl", "obligacje-skarbowe")
+    )
+
+
 # ── English routes (/en/) ─────────────────────────────────────────────────────
 
 @app.get("/en/", response_class=HTMLResponse)
@@ -585,7 +598,7 @@ async def sitemap(request: Request):
     if host.startswith("www."):
         return RedirectResponse(url=f"https://zenetfs.com/sitemap.xml", status_code=301)
 
-    pages = ["", "portfolios", "etfs", "about", "privacy", "brokers"]
+    pages = ["", "portfolios", "etfs", "about", "privacy", "brokers", "obligacje-skarbowe"]
     date_now = datetime.utcnow().strftime("%Y-%m-%d")
 
     base = BASE_URL.rstrip("/")
