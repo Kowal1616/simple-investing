@@ -16,6 +16,7 @@ import os
 import inspect
 import logging
 import datetime
+import calendar
 
 import pandas as pd
 
@@ -169,6 +170,9 @@ def get_etfs_yields(session):
         etf_yields = []
         if not monthly_price.empty:
             end_date = monthly_price.index[-1]
+            last_day = calendar.monthrange(end_date.year, end_date.month)[1]
+            if end_date.day != last_day:
+                end_date = end_date.replace(day=last_day)
             for period, yrs in zip(periods, years):
                 start_date = end_date - pd.DateOffset(years=yrs)
                 if monthly_price.index[0] <= start_date + pd.Timedelta(days=31):
@@ -262,6 +266,10 @@ def get_portfolio_returns(session):
         portfolio_yields = []
         if not blended_series.empty:
             end_date = blended_series.index[-1]
+            # Normalize to month-end for consistent calendar alignment
+            last_day = calendar.monthrange(end_date.year, end_date.month)[1]
+            if end_date.day != last_day:
+                end_date = end_date.replace(day=last_day)
             for period, yrs in zip(periods, years):
                 start_date = end_date - pd.DateOffset(years=yrs)
                 

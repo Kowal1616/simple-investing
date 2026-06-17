@@ -173,6 +173,10 @@ def get_fred_data(series_id):
         log.warning("FRED failed for %s: %s", series_id, e)
     return None
 
+def get_eurusd_history():
+    """Fetch historical EUR/USD exchange rate from FRED (DEXUSEU)."""
+    return get_fred_data('DEXUSEU')
+
 # ── Logic: TBSP Proxy (Poland Bonds) ────────────────────────────────────────
 
 def get_tbsp_proxy():
@@ -369,6 +373,17 @@ def run_population(session, force=False):
         elif "All World" in cfg['asset_type']: proxy = acwi_proxy
         elif "Bonds - Global" in cfg['asset_type']: proxy = bond_proxy_en
         elif "Bonds - Poland" in cfg['asset_type']: proxy = tbsp_proxy
+        
+        # EUR/USD correction for gold proxy (GC=F is USD, ETFs are EUR)
+        if "Gold" in cfg['asset_type'] and proxy is not None and not proxy.empty:
+            eurusd = get_eurusd_history()
+            if eurusd is not None and not eurusd.empty:
+                anchor_date = prices.index[0] if not prices.empty else proxy.index[-1]
+                eurusd_at_anchor = eurusd.asof(anchor_date)
+                if pd.notna(eurusd_at_anchor) and eurusd_at_anchor > 0:
+                    eurusd_aligned = eurusd.reindex(proxy.index).ffill().bfill()
+                    proxy = proxy / eurusd_aligned * eurusd_at_anchor
+                    log.info("Applied EUR/USD correction to gold proxy (anchor: %s, rate: %.4f)", anchor_date.date(), eurusd_at_anchor)
         
         if proxy is not None and not proxy.empty:
             # Shift proxy to match first price of ETF
