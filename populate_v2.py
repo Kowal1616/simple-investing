@@ -12,7 +12,6 @@ Phases:
             SXR8  => ^GSPC  (S&P 500, Yahoo Finance)
             EUNL  => ^MSCIW (MSCI World, stooq CSV)
             IUSQ  => ^MSCIW (MSCI World proxy for ACWI, stooq CSV)
-            SYBJ  => BAMLHE00EHY0EY (ICE BofA Euro HY yield, FRED)
             4GLD  => XAUUSD (gold spot, stooq CSV)
             XDWT  => no simulation needed (real YF history covers 30 yrs)
        c. Apply proxy percentage returns backwards from the ETF's first real price
@@ -34,8 +33,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from models_v2 import (db, Etfs, HistoricalDataEtfs, Portfolios,
-                       PortfolioComposition, InflationHistoricalPeriods,
-                       InflationRates)
+                       PortfolioComposition, InflationHistoricalPeriods)
 
 load_dotenv()
 
@@ -77,11 +75,6 @@ PROXY_CONFIG = {
         'proxy_ticker': '^NDX',
         'note': 'Nasdaq 100 as proxy for historical MSCI World Info Tech (XDWT)',
     },
-    'SYBJ': {
-        'proxy_source': 'yfinance',
-        'proxy_ticker': 'HYG',
-        'note': 'iShares iBoxx $ High Yield Corporate Bond ETF (HYG)',
-    },
 }
 
 # ---------------------------------------------------------------------------
@@ -122,15 +115,6 @@ def copy_static_data():
             inflation30=row.inflation30,
             inflation40=row.inflation40,
         ))
-
-    # --- InflationRates (year-by-year source table — was empty in V2 before) ---
-    # Unpivot wide table to flat schema
-    rows_ir = list(session_v1.execute(text('SELECT * FROM inflation_rates')))
-    for row in rows_ir:
-        session_v2.add(InflationRates(year=row.year, currency_code='EUR', rate=row.EUR_inflation_rate))
-        session_v2.add(InflationRates(year=row.year, currency_code='USD', rate=row.USD_inflation_rate))
-        session_v2.add(InflationRates(year=row.year, currency_code='PLN', rate=row.PLN_inflation_rate))
-    print(f"  InflationRates: copied {len(rows_ir)} rows")
 
     # --- ETFs (without yield columns — those are recomputed by app.py update()) ---
     for row in session_v1.execute(text('SELECT * FROM etfs')):
