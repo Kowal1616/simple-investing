@@ -3,6 +3,8 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -15,7 +17,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Validate Python syntax (PR only)
+        if: github.event_name == 'pull_request'
+        run: python3 -m py_compile main.py head_main.py local_main.py helpers_v2.py scripts/populate_v3.py
+
       - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -23,9 +30,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
+        if: github.event_name == 'push'
         uses: docker/setup-buildx-action@v3
 
       - name: Build and push Docker image
+        if: github.event_name == 'push'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -37,7 +46,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Send WhatsApp Notification
-        if: success()
+        if: github.event_name == 'push' && success()
         env:
           CALLMEBOT_API_KEY: ${{ secrets.CALLMEBOT_API_KEY }}
           MY_PHONE_NUMBER: ${{ secrets.MY_PHONE_NUMBER }}
