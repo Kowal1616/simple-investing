@@ -37,7 +37,7 @@ ETF_CONFIG = [
     {"ticker": "SPXP", "name": "Invesco S&P 500 UCITS ETF", "isin": "IE00B3YCGJ38", "asset_type": "Stocks - USA", "currency": "EUR", "ext_ticker": "SPXP.DE", "eodhd": "SPXP.LSE"},
     
     # Global Technology
-    {"ticker": "IXN",  "name": "iShares Global Tech ETF", "isin": "US4642872919", "asset_type": "Stocks - Tech", "currency": "USD", "ext_ticker": "IXN", "eodhd": "IXN.US"},
+    {"ticker": "SPFT", "name": "SPDR MSCI World Technology UCITS ETF", "isin": "IE00BYTRRD19", "asset_type": "Stocks - Tech", "currency": "EUR", "ext_ticker": "SPFT.DE", "eodhd": "SPFT.XETRA"},
     {"ticker": "XDWT", "name": "Xtrackers MSCI World IT UCITS", "isin": "IE00BM67HT60", "asset_type": "Stocks - Tech", "currency": "EUR", "ext_ticker": "XDWT.DE", "eodhd": "XDWT.XETRA"},
     {"ticker": "IITU", "name": "Amundi S&P Global IT ESG UCITS", "isin": "IE000E7EI9P0", "asset_type": "Stocks - Tech", "currency": "EUR", "ext_ticker": "IITU.DE", "eodhd": "WELU.XETRA"},
     
@@ -58,7 +58,7 @@ ETF_CONFIG = [
 # ── Configuration: Portfolios ───────────────────────────────────────────────
 PORTFOLIO_CONFIG = [
     {"name": "USA (S&P 500)", "slug": "sp500", "composition": {"SXR8": 33.333, "XDP6": 33.333, "SPXP": 33.334}},
-    {"name": "GLOBAL TECHNOLOGY", "slug": "tech", "composition": {"IXN": 33.333, "XDWT": 33.333, "IITU": 33.334}},
+    {"name": "GLOBAL TECHNOLOGY", "slug": "tech", "composition": {"SPFT": 33.333, "XDWT": 33.333, "IITU": 33.334}},
     {"name": "ALL WORLD", "slug": "allworld", "composition": {"IUSQ": 33.333, "VWCE": 33.333, "SPYY": 33.334}},
     
     {"name": "80-20 (Stocks-Bonds) EN", "slug": "80-20_EN", "composition": {

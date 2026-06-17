@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block meta_description %}ZenETFs — Lista ETF UCITS dla europejskich inwestorów. Fundusze akumulujące, niskie TER, domicyl w Irlandii i Niemczech.{% endblock %}
+{% block meta_description %}ZenETFs — Lista ETF UCITS dla europejskich inwestorów. Fundusze akumulujące, niskie TER, siedziba w Irlandii i Niemczech.{% endblock %}
 {% block title %}ETFy{% endblock %}
 
 {% block main %}
@@ -10,66 +10,293 @@
 </header>
 
 <section class="section" style="padding-top:0;">
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Fundusz ETF</th>
-          <th>Ticker</th>
-          <th>TER</th>
-          <th>Typ</th>
-          <th>Siedziba</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B5BMR087" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares Core S&amp;P 500 UCITS Accumulating</a></td>
-          <td><span class="ticker-code">SXR8</span></td>
-          <td>0,07%</td>
-          <td><span class="type-badge type-acc">Akumulujący</span></td>
-          <td>🇮🇪 Irlandia</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00BM67HT60" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xtrackers MSCI World Information Technology UCITS Accumulating</a></td>
-          <td><span class="ticker-code">XDWT</span></td>
-          <td>0,25%</td>
-          <td><span class="type-badge type-acc">Akumulujący</span></td>
-          <td>🇮🇪 Irlandia</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B6R52259" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares MSCI ACWI UCITS Accumulating</a></td>
-          <td><span class="ticker-code">IUSQ</span></td>
-          <td>0,20%</td>
-          <td><span class="type-badge type-acc">Akumulujący</span></td>
-          <td>🇮🇪 Irlandia</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B4L5Y983" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares Core MSCI World UCITS Accumulating</a></td>
-          <td><span class="ticker-code">EUNL</span></td>
-          <td>0,20%</td>
-          <td><span class="type-badge type-acc">Akumulujący</span></td>
-          <td>🇮🇪 Irlandia</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B6TLBW47" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">SPDR Bloomberg Euro High Yield Bond UCITS Distributing</a></td>
-          <td><span class="ticker-code">SYBJ</span></td>
-          <td>0,40%</td>
-          <td><span class="type-badge type-dist">Wypłacający</span></td>
-          <td>🇮🇪 Irlandia</td>
-        </tr>
-        <tr>
-          <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/DE000A0S9GB0" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xetra Gold*</a></td>
-          <td><span class="ticker-code">4GLD</span></td>
-          <td>0%</td>
-          <td><span class="type-badge type-acc">Akumulujący</span></td>
-          <td>🇩🇪 Niemcy</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="etf-accordion">
+
+    <!-- ── USA (S&P 500) ── -->
+    <details class="etf-category" id="category-usa">
+      <summary>
+        <div class="cat-header">
+          <div class="cat-icon" style="background:rgba(74,144,226,0.12);"><i data-lucide="landmark" style="color:#4A90E2;width:20px;height:20px;"></i></div>
+          <div class="cat-info">
+            <span class="cat-title">USA (S&amp;P 500)</span>
+            <span class="cat-desc">3 fundusze śledzące indeks S&amp;P 500</span>
+          </div>
+          <span class="cat-toggle">Zobacz polecane ETFy</span>
+        </div>
+      </summary>
+      <div class="cat-body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fundusz ETF</th>
+                <th>Ticker</th>
+                <th>TER</th>
+                <th>Typ</th>
+                <th>Siedziba</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B5BMR087" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares Core S&amp;P 500 UCITS ETF</a></td>
+                <td><span class="ticker-code">SXR8</span></td>
+                <td>0,07%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/LU0490618542" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xtrackers S&amp;P 500 Swap UCITS</a></td>
+                <td><span class="ticker-code">XDP6</span></td>
+                <td>0,20%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇱🇺 Luksemburg</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B3YCGJ38" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Invesco S&amp;P 500 UCITS ETF</a></td>
+                <td><span class="ticker-code">SPXP</span></td>
+                <td>0,05%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="/pl/brokers" class="btn-ghost"><i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Gdzie kupić ETF?</a>
+      </div>
+    </details>
+
+    <!-- ── Global Technology ── -->
+    <details class="etf-category" id="category-global-tech">
+      <summary>
+        <div class="cat-header">
+          <div class="cat-icon" style="background:rgba(167,139,250,0.12);"><i data-lucide="cpu" style="color:#a78bfa;width:20px;height:20px;"></i></div>
+          <div class="cat-info">
+            <span class="cat-title">Global Technology</span>
+            <span class="cat-desc">3 fundusze obejmujące sektor technologiczny</span>
+          </div>
+          <span class="cat-toggle">Zobacz polecane ETFy</span>
+        </div>
+      </summary>
+      <div class="cat-body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fundusz ETF</th>
+                <th>Ticker</th>
+                <th>TER</th>
+                <th>Typ</th>
+                <th>Siedziba</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00BM67HT60" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xtrackers MSCI World Information Technology UCITS Accumulating</a></td>
+                <td><span class="ticker-code">XDWT</span></td>
+                <td>0,25%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00BYTRRD19" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">SPDR MSCI World Technology UCITS ETF</a></td>
+                <td><span class="ticker-code">SPFT</span></td>
+                <td>0,30%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE000E7EI9P0" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Amundi S&amp;P Global Information Technology ESG UCITS</a></td>
+                <td><span class="ticker-code">IITU</span></td>
+                <td>0,18%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="/pl/brokers" class="btn-ghost"><i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Gdzie kupić ETF?</a>
+      </div>
+    </details>
+
+    <!-- ── All World ── -->
+    <details class="etf-category" id="category-all-world">
+      <summary>
+        <div class="cat-header">
+          <div class="cat-icon" style="background:rgba(0,200,150,0.12);"><i data-lucide="globe-2" style="color:#00C896;width:20px;height:20px;"></i></div>
+          <div class="cat-info">
+            <span class="cat-title">All World</span>
+            <span class="cat-desc">3 fundusze z globalną dywersyfikacją</span>
+          </div>
+          <span class="cat-toggle">Zobacz polecane ETFy</span>
+        </div>
+      </summary>
+      <div class="cat-body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fundusz ETF</th>
+                <th>Ticker</th>
+                <th>TER</th>
+                <th>Typ</th>
+                <th>Siedziba</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B6R26155" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares MSCI ACWI UCITS ETF</a></td>
+                <td><span class="ticker-code">IUSQ</span></td>
+                <td>0,20%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00BK5BQT80" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Vanguard FTSE All-World UCITS ETF</a></td>
+                <td><span class="ticker-code">VWCE</span></td>
+                <td>0,22%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B3YLMD38" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">SPDR MSCI ACWI UCITS ETF</a></td>
+                <td><span class="ticker-code">SPYY</span></td>
+                <td>0,12%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="/pl/brokers" class="btn-ghost"><i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Gdzie kupić ETF?</a>
+      </div>
+    </details>
+
+    <!-- ── Bonds ── -->
+    <details class="etf-category" id="category-bonds">
+      <summary>
+        <div class="cat-header">
+          <div class="cat-icon" style="background:rgba(245,158,11,0.12);"><i data-lucide="scale" style="color:#f59e0b;width:20px;height:20px;"></i></div>
+          <div class="cat-info">
+            <span class="cat-title">Obligacje</span>
+            <span class="cat-desc">3 fundusze obejmujące obligacje rządowe</span>
+          </div>
+          <span class="cat-toggle">Zobacz polecane ETFy</span>
+        </div>
+      </summary>
+      <div class="cat-body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fundusz ETF</th>
+                <th>Ticker</th>
+                <th>TER</th>
+                <th>Typ</th>
+                <th>Siedziba</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00BGYWFF04" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Vanguard Global Government Bond EUR Hedged</a></td>
+                <td><span class="ticker-code">VGGF</span></td>
+                <td>0,15%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/LU1708330235" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Amundi Core Global Government Bond EUR Hedged</a></td>
+                <td><span class="ticker-code">XG7S</span></td>
+                <td>0,25%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇱🇺 Luksemburg</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/LU0378818131" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xtrackers II Global Government Bond EUR Hedged</a></td>
+                <td><span class="ticker-code">DBXW</span></td>
+                <td>0,20%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇱🇺 Luksemburg</td>
+              </tr>
+
+            </tbody>
+          </table>
+        </div>
+        <a href="/pl/brokers" class="btn-ghost"><i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Gdzie kupić ETF?</a>
+      </div>
+    </details>
+
+    <!-- ── Gold ── -->
+    <details class="etf-category" id="category-gold">
+      <summary>
+        <div class="cat-header">
+          <div class="cat-icon" style="background:rgba(251,191,36,0.12);"><i data-lucide="gem" style="color:#fbbf24;width:20px;height:20px;"></i></div>
+          <div class="cat-info">
+            <span class="cat-title">Złoto</span>
+            <span class="cat-desc">3 fundusze oparte na fizycznym złocie</span>
+          </div>
+          <span class="cat-toggle">Zobacz polecane ETFy</span>
+        </div>
+      </summary>
+      <div class="cat-body">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fundusz ETF / ETC</th>
+                <th>Ticker</th>
+                <th>TER</th>
+                <th>Typ</th>
+                <th>Siedziba</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/DE000A0S9GB0" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Xetra Gold*</a></td>
+                <td><span class="ticker-code">4GLD</span></td>
+                <td>0%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇩🇪 Niemcy</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B4ND3602" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">iShares Physical Gold ETC</a></td>
+                <td><span class="ticker-code">PPFB</span></td>
+                <td>0,12%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+              <tr>
+                <td style="font-weight:600;"><a href="https://atlasetf.pl/etf-details/IE00B579F325" target="_blank" rel="noopener" style="color:var(--blue);text-decoration:none;">Invesco Physical Gold A</a></td>
+                <td><span class="ticker-code">8PSG</span></td>
+                <td>0,12%</td>
+                <td><span class="type-badge type-acc">Akumulujący</span></td>
+                <td>🇮🇪 Irlandia</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <a href="/pl/brokers" class="btn-ghost"><i data-lucide="shopping-cart" style="width:14px;height:14px;"></i> Gdzie kupić ETF?</a>
+      </div>
+    </details>
+
   </div>
-  <div class="info-note" style="margin-top:12px;">
+
+  <div class="info-note" style="margin-top:24px;">
     <i data-lucide="alert-circle" style="width:13px;height:13px;flex-shrink:0;margin-top:1px;"></i>
     <span>* Xetra Gold to technicznie ETC (Exchange-Traded Commodity), nie ETF, gdyż śledzi cenę surowca. TER = Total Expense Ratio — roczny koszt funduszu.</span>
   </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const strategy = params.get('strategy');
+  if (strategy) {
+    const el = document.getElementById('category-' + strategy);
+    if (el) {
+      el.open = true;
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+});
+</script>
 {% endblock %}
